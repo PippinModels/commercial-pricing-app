@@ -3,9 +3,10 @@ import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Authenticate with Google Sheets
+# Authenticate with Google Sheets using Streamlit secrets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("commercial-pricing-pipeline-5646db7d6064.json", scope)
+json_creds = st.secrets["gspread"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(json_creds, scope)
 client = gspread.authorize(creds)
 
 # Open the Google Sheet by ID and get the "Summary Sheet"
