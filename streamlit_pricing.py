@@ -76,10 +76,8 @@ if not df.empty:
             median_range = sorted([f_median, s_median])  # always small to large
 
             # Display results
-            st.subheader("Predicted Pricing")
-            st.markdown(f"<h4> ${adjusted_pricing:,.2f}</h4>", unsafe_allow_html=True)
-
-            st.markdown(f"**Forecasted Pricing Range:** ${mean_range[0]:,.2f} – ${mean_range[1]:,.2f}")
+            st.subheader("Forecasted Pricing Range")
+            st.markdown(f"<h4> ${mean_range[0]:,.2f} – ${mean_range[1]:,.2f} </h4>", unsafe_allow_html=True)
         else:
             st.warning("No predictions available for the selected criteria.")
 else:
