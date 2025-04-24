@@ -79,8 +79,7 @@ if not df.empty:
             st.subheader("Predicted Pricing")
             st.markdown(f"<h4> ${adjusted_pricing:,.2f}</h4>", unsafe_allow_html=True)
 
-            st.markdown(f"**Forecasted Mean Range:** ${mean_range[0]:,.2f} – ${mean_range[1]:,.2f}")
-            st.markdown(f"**Forecasted Median Range:** ${median_range[0]:,.2f} – ${median_range[1]:,.2f}")
+            st.markdown(f"**Forecasted Pricing Range:** ${mean_range[0]:,.2f} – ${mean_range[1]:,.2f}")
         else:
             st.warning("No predictions available for the selected criteria.")
 else:
