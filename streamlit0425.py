@@ -63,7 +63,7 @@ if not df.empty:
 
             adjusted_pricing = row["Adjusted Forecasted Pricing (mean)"]
             smoothed_pricing = row["Smoothed Forecasted Pricing (mean)"]
-            confidence = row.get("Confidence", "Unknown")
+            confidence = row.get("Confidence Interval", "Unknown")
 
             # Display results
             st.subheader("Forecasted Pricing")
