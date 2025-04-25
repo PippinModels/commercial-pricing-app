@@ -1,14 +1,15 @@
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import json
+from oauth2client.service_account import ServiceAccountCredentials
 
 # Authenticate with Google Sheets using Streamlit secrets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 json_key = st.secrets["google_sheets"]["json_key"]
 service_account_info = json.loads(json_key)
-creds = ServiceAccountCredentials.from_json_keyfile_dict(json_creds, scope)
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 client = gspread.authorize(creds)
 
 # Open the Google Sheet by ID and get the "Summary Sheet"
@@ -16,10 +17,11 @@ spreadsheet_id = "1j98zwn4qc6oq0GKnGapaOyMjaw_zWPvwvqTkSDL4dB8"
 sheet = client.open_by_key(spreadsheet_id)
 summary_sheet = sheet.worksheet("Summary Sheet")
 
-# Convert to DataFrame
+# Convert sheet data to a DataFrame
 data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
+# Product hierarchy for sorting
 product_hierarchy = {
     "Update Search": 1,
     "Current Owner Search": 2,
@@ -32,6 +34,7 @@ product_hierarchy = {
     "Full 100 YR Search": 9,
 }
 
+# Streamlit app UI
 st.title("Commercial Prediction Model")
 
 if not df.empty:
@@ -50,6 +53,7 @@ if not df.empty:
     if st.button("Predict Pricing"):
         if not filtered_df.empty:
             row = filtered_df.iloc[0]
+
             predicted_pricing = row["Predicted Pricing"]
             adjusted_pricing = row["Adjusted Predicted Pricing"]
 
@@ -63,8 +67,9 @@ if not df.empty:
                     f"<h4> ${price_range[0]:,.2f} – ${price_range[1]:,.2f} </h4>",
                     unsafe_allow_html=True
                 )
+
         else:
             st.warning("No predictions available for the selected criteria.")
-
 else:
     st.warning("No prediction file found. Run the pipeline first.")
+
