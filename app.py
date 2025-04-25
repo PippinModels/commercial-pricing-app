@@ -48,10 +48,21 @@ if not df.empty:
     if st.button("Predict Pricing"):
         if not filtered_df.empty:
             row = filtered_df.iloc[0]
+            predicted_pricing = row["Predicted Pricing"]
             adjusted_pricing = row["Adjusted Predicted Pricing"]
+
             st.subheader("Predicted Pricing")
-            st.markdown(f"<h4> ${adjusted_pricing:,.2f}</h4>", unsafe_allow_html=True)
+
+            if predicted_pricing == adjusted_pricing:
+                st.markdown(f"<h4> ${adjusted_pricing:,.2f} </h4>", unsafe_allow_html=True)
+            else:
+                price_range = sorted([predicted_pricing, adjusted_pricing])
+                st.markdown(
+                    f"<h4> ${price_range[0]:,.2f} – ${price_range[1]:,.2f} </h4>",
+                    unsafe_allow_html=True
+                )
         else:
             st.warning("No predictions available for the selected criteria.")
+
 else:
     st.warning("No prediction file found. Run the pipeline first.")
