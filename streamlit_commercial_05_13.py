@@ -52,56 +52,68 @@ if not df.empty:
             predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
-            prediction_options = {
-                "A.": ("Adjusted Mean – Smoothed Mean", adjusted_mean, smoothed_mean),
-                "B.": ("Adjusted Median – Smoothed Median", adjusted_median, smoothed_median),
-                "C.": ("Adjusted Mean – Adjusted Median", adjusted_mean, adjusted_median),
-                "D.": ("Smoothed Mean – Smoothed Median", smoothed_mean, smoothed_median),
-            }
-
+            # Store raw values first, then we'll handle formatting separately
+            prediction_pairs = [
+                ("A", "Adjusted Mean – Smoothed Mean", adjusted_mean, smoothed_mean),
+                ("B", "Adjusted Median – Smoothed Median", adjusted_median, smoothed_median),
+                ("C", "Adjusted Mean – Adjusted Median", adjusted_mean, adjusted_median),
+                ("D", "Smoothed Mean – Smoothed Median", smoothed_mean, smoothed_median),
+            ]
+            
             if predicted_mean is not None and predicted_median is not None:
-                prediction_options["E."] = ("Predicted Mean – Predicted Median", predicted_mean, predicted_median)
-
-            # Create the formatted options with proper dollar sign display
-            formatted_options = {}
+                prediction_pairs.append(("E", "Predicted Mean – Predicted Median", predicted_mean, predicted_median))
+            
+            # List to store unique display options and their values
+            prediction_options = []
             seen_ranges = set()
-
-            for label, (desc, lo, hi) in prediction_options.items():
-                # Sort values to ensure lo is always the smaller value
-                lo, hi = min(lo, hi), max(lo, hi)
+            
+            for label, desc, val1, val2 in prediction_pairs:
+                # Sort values to ensure low-high order
+                lo, hi = min(val1, val2), max(val1, val2)
                 
-                # Format with dollar signs on both values
-                option_text = f"{label} ${lo:.2f} - ${hi:.2f}"
-                
-                # Ensure no duplicates in ranges
+                # Create unique identifier for the range
                 range_key = (round(lo, 2), round(hi, 2))
+                
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    formatted_options[option_text] = (label, desc, lo, hi)
-
-            st.session_state.prediction_choices = formatted_options
+                    # Create proper formatted display text
+                    display_text = f"{label}. ${lo:.2f} - ${hi:.2f}"
+                    # Save both display text and values
+                    prediction_options.append((display_text, (label, desc, lo, hi)))
+            
+            # Save options to session state for later use
+            st.session_state.prediction_options = prediction_options
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
 
-    if "prediction_choices" in st.session_state:
+    # Display price range options if we have them
+    if "prediction_options" in st.session_state:
         st.subheader("Select Closest Price Range")
-        selected_text = st.radio(
+        
+        # Extract display texts for the radio buttons and create a mapping
+        display_texts = [opt[0] for opt in st.session_state.prediction_options]
+        option_values = [opt[1] for opt in st.session_state.prediction_options]
+        option_map = dict(zip(display_texts, option_values))
+        
+        # Add the "Other" option
+        display_texts.append("Other (Enter manually)")
+        
+        selected_display = st.radio(
             "Choose range:",
-            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+            options=display_texts,
             index=None,
-            format_func=lambda x: x,
             label_visibility="collapsed"
         )
-
-        if selected_text:
-            if selected_text == "Other (Enter manually)":
+        
+        if selected_display:
+            if selected_display == "Other (Enter manually)":
                 manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, None)
             else:
                 st.session_state.selection_made = True
-                st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
-                st.success(f"You selected: {selected_text}")
+                st.session_state.selected_entry = option_map[selected_display]
+                st.success(f"You selected: {selected_display}")
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, desc, lo, hi = st.session_state.selected_entry
