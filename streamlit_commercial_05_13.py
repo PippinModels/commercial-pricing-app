@@ -95,6 +95,55 @@ if not df.empty:
             st.session_state.prediction_choices = formatted_options
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
+            
+    if "prediction_choices" in st.session_state:
+        st.subheader("Select Closest Price Range")
+        selected_text = st.radio(
+            "Choose range:",
+            options=list(st.session_state.prediction_choices.keys()),
+            index=None
+        )
+
+        if selected_text:
+            st.session_state.selection_made = True
+            st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
+            st.success(f"You selected: {selected_text}")
+
+    if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
+        label, lo, hi = st.session_state.selected_entry
+        timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
+        sheet_name = "User Prediction Selections"
+
+        try:
+            try:
+                submission_sheet = sheet.worksheet(sheet_name)
+            except gspread.exceptions.WorksheetNotFound:
+                submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
+                submission_sheet.append_row([
+                    "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                    "Selected Range", "Range Start", "Range End", "Timestamp"
+                ])
+
+            existing = submission_sheet.get_all_records()
+            duplicate = any(
+                row["Mapped Type"] == mapped_type and
+                row["Mapped Product Ordered"] == mapped_product and
+                row["Offline/Online"] == online_offline and
+                row["Selected Range"] == label
+                for row in existing
+            )
+
+            if duplicate:
+                st.warning("You've already submitted this selection.")
+            else:
+                submission_sheet.append_row([
+                    mapped_type, mapped_product, online_offline,
+                    label, lo, hi, timestamp
+                ])
+                st.success("Your selected range has been recorded.")
+
+        except Exception as e:
+            st.error(f"Failed to record selection: {e}")
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
