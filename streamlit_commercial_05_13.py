@@ -77,7 +77,7 @@ if not df.empty:
             }
 
             if predicted_mean is not None and predicted_median is not None:
-                raw_options[" Predicted Mean – Predicted Median"] = [predicted_mean, predicted_median]
+                raw_options[" Predicted Mean – Predicted Median"] = sorted([predicted_mean, predicted_median])
 
           
             seen_ranges = set()
@@ -93,7 +93,7 @@ if not df.empty:
 
             
             st.subheader("Select the Price Range:")
-            selected_range_label = st.radio( 
+            selected_range_label = st.radio( "Choose the closest range",
                 options=list(prediction_options.keys()),
                 index=None
             )
