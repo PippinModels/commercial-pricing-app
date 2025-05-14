@@ -29,13 +29,18 @@ data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
 product_hierarchy = {
-    "Update Search": 1, "Current Owner Search": 2, "Two Owner Search": 3,
-    "Full 30 YR Search": 4, "Full 40 YR Search": 5, "Full 50 YR Search": 6,
-    "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
+    "Update Search": 1, 
+    "Current Owner Search": 2, 
+    "Two Owner Search": 3,
+    "Full 30 YR Search": 4, 
+    "Full 40 YR Search": 5,
+    "Full 50 YR Search": 6,
+    "Full 60 YR Search": 7,
+    "Full 80 YR Search": 8,
+    "Full 100 YR Search": 9,
 }
 
 st.title("Commercial Prediction Model (05/13/25)")
-st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
@@ -86,68 +91,62 @@ if not df.empty:
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
 
-# Radio selection
-if "prediction_choices" in st.session_state:
-    st.subheader("Select Closest Price Range")
-    selected_text = st.radio(
-        "Choose range:",
-        options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
-        index=None
-    )
-
-    if selected_text:
-        if selected_text == "Other (Enter manually)":
-            st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual Entry", 0.0, '')
-        else:
-            st.session_state.selection_made = True
-            st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
-            st.success(f"You selected: {selected_text}")
-
-# Manual entry field
-manual_entry = st.number_input("Or enter your own predicted value:", min_value=0.0, format="%.2f")
-
-# Submit to Sheet
-if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
-    label, desc, lo, hi = st.session_state.selected_entry
-    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
-    sheet_name = "User Prediction Selections"
-
-    try:
-        try:
-            submission_sheet = sheet.worksheet(sheet_name)
-        except gspread.exceptions.WorksheetNotFound:
-            submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
-            submission_sheet.append_row([
-                "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
-            ])
-
-        existing = submission_sheet.get_all_records()
-        duplicate = any(
-            row["Mapped Type"] == mapped_type and
-            row["Mapped Product Ordered"] == mapped_product and
-            row["Offline/Online"] == online_offline and
-            row["Selected Range"] == label
-            for row in existing
+    if "prediction_choices" in st.session_state:
+        st.subheader("Select Closest Price Range")
+        selected_text = st.radio(
+            "Choose range:",
+            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+            index=None
         )
 
-        if duplicate:
-            st.warning("You've already submitted this selection.")
-        else:
-            submission_sheet.append_row([
-                mapped_type, mapped_product, online_offline,
-                label,
-                desc,
-                manual_entry if label == "Manual" else lo,
-                '' if label == "Manual" else hi,
-                timestamp
-            ])
-            st.success("Your selected range has been recorded.")
-            
+        if selected_text:
+            if selected_text == "Other (Enter manually)":
+                st.session_state.selection_made = True
+                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
+            else:
+                st.session_state.selection_made = True
+                st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
+                st.success(f"You selected: {selected_text}")
 
-    except Exception as e:
-        st.error(f"Failed to record selection: {e}")
+    manual_entry = None
+        if st.session_state.get("selected_entry", (None,))[0] == "Manual":
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
 
-else:
-    st.warning("No prediction file found. Run the pipeline first.")
+    if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
+        label, desc, lo, hi = st.session_state.selected_entry
+        timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
+        sheet_name = "User Prediction Selections"
+
+        try:
+            try:
+                submission_sheet = sheet.worksheet(sheet_name)
+            except gspread.exceptions.WorksheetNotFound:
+                submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
+                submission_sheet.append_row([
+                    "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                    "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
+                ])
+
+            existing = submission_sheet.get_all_records()
+            duplicate = any(
+                row["Mapped Type"] == mapped_type and
+                row["Mapped Product Ordered"] == mapped_product and
+                row["Offline/Online"] == online_offline and
+                row["Selected Range"] == label
+                for row in existing
+            )
+
+            if duplicate:
+                st.warning("You've already submitted this selection.")
+            else:
+                submission_sheet.append_row([
+                    mapped_type, mapped_product, online_offline,
+                    label,
+                    desc,
+                    manual_entry if label == "Manual Entry" else lo,
+                    hi,
+                    timestamp
+                ])
+                st.success("Your selected range has been recorded.")
+            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+
