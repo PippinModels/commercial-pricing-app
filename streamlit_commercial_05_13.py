@@ -62,14 +62,16 @@ if not df.empty:
             if predicted_mean is not None and predicted_median is not None:
                 prediction_options["E."] = ("Predicted Mean – Predicted Median", [predicted_mean, predicted_median])
 
-            # Create the formatted options, handling ranges correctly with desired format
+            # Create the formatted options, ensuring proper display of prices with $ signs and correct range formatting
             formatted_options = {}
             seen_ranges = set()
 
             for label, (desc, values) in prediction_options.items():
-                if lo == hi:
+                lo, hi = values[0], values[1]
+                # Format as "$lo - $hi", ensuring both values show up with $ if they are the same or different
+                if lo == hi:  # If both values are the same, display as "$lo - $lo"
                     option_text = f"{label} ${lo:,.2f} - ${lo:,.2f}"
-                else:  
+                else:  # Otherwise display the range with $ symbol for both values
                     option_text = f"{label} ${lo:,.2f} - ${hi:,.2f}"
 
                 # Ensure no duplicates in ranges
