@@ -75,7 +75,7 @@ if not df.empty:
 
             for label, (desc, values) in prediction_options.items():
                 lo, hi = values
-                range_key = (round(lo, 2), round('' if label == "Manual" else hi, 2))
+                range_key = (round(lo, 2), round(hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
                     option_text = f"{label} ${lo:,.2f} – ${hi:,.2f}"
@@ -140,10 +140,5 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
-st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
-        except Exception as e:
-            st.error(f"Failed to record selection: {e}")
-
-else:
-    st.warning("No prediction file found. Run the pipeline first.")
