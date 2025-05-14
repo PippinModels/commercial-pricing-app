@@ -94,10 +94,8 @@ if not df.empty:
             "Choose range:",
             options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
             index=None,
+            format_func=lambda x: x,
             label_visibility="collapsed"
-        )
-        index=None,label_visibility="collapsed"
-        )) + ["Other (Enter manually)"],index=None,format_func=lambda x: x,label_visibility="collapsed"
         )
 
         if selected_text:
@@ -109,8 +107,6 @@ if not df.empty:
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
                 st.success(f"You selected: {selected_text}")
-
-    
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, desc, lo, hi = st.session_state.selected_entry
@@ -154,5 +150,3 @@ if not df.empty:
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
-            
-
