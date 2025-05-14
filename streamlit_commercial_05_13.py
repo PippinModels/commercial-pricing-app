@@ -105,7 +105,7 @@ if not df.empty:
                 
                 try:
                     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
-                    sheet_name = "Predcitons Selections"
+                    sheet_name = "Predictions Selections"
 
                     try:
                         submission_sheet = sheet.worksheet(sheet_name)
