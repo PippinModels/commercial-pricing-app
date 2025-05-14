@@ -20,15 +20,9 @@ data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
 product_hierarchy = {
-    "Update Search": 1,
-    "Current Owner Search": 2,
-    "Two Owner Search": 3,
-    "Full 30 YR Search": 4,
-    "Full 40 YR Search": 5,
-    "Full 50 YR Search": 6,
-    "Full 60 YR Search": 7,
-    "Full 80 YR Search": 8,
-    "Full 100 YR Search": 9,
+    "Update Search": 1, "Current Owner Search": 2, "Two Owner Search": 3,
+    "Full 30 YR Search": 4, "Full 40 YR Search": 5, "Full 50 YR Search": 6,
+    "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
 st.title("Commercial Prediction Model (05/13/25)")
@@ -68,13 +62,14 @@ if not df.empty:
             if predicted_mean is not None and predicted_median is not None:
                 prediction_options["E."] = ("Predicted Mean – Predicted Median", [predicted_mean, predicted_median])
 
-            # Create the formatted options, handling ranges correctly without HTML formatting
+            # Create the formatted options, handling ranges correctly with desired format
             formatted_options = {}
             seen_ranges = set()
 
             for label, (desc, values) in prediction_options.items():
                 lo, hi = values[0], values[1]
-                option_text = f"{label} ${lo:,.2f} – ${hi:,.2f}"
+                # Display lo and hi as "lo - hi", even if they are the same
+                option_text = f"{label} ${lo:,.2f} - ${hi:,.2f}"
 
                 # Ensure no duplicates in ranges
                 range_key = (round(lo, 2), round(hi, 2))
