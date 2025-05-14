@@ -99,6 +99,7 @@ if not df.empty:
 
         if selected_text:
             if selected_text == "Other (Enter manually)":
+                manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
             else:
@@ -106,9 +107,7 @@ if not df.empty:
                 st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
                 st.success(f"You selected: {selected_text}")
 
-    manual_entry = None
-    if st.session_state.get("selected_entry", (None,))[0] == "Manual":
-            manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
+    
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, desc, lo, hi = st.session_state.selected_entry
@@ -146,6 +145,9 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
+                st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+            
+
         except Exception as e:
             st.error(f"Failed to record selection: {e}")
 
