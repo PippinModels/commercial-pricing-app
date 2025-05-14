@@ -56,7 +56,7 @@ if not df.empty:
 
     filtered_df = filtered_df_product[filtered_df_product["Offline/Online"] == online_offline]
 
-        if st.button("Predict Pricing"):
+    if st.button("Predict Pricing"):
         if not filtered_df.empty:
             row = filtered_df.iloc[0]
 
