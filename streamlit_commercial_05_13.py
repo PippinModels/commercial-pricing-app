@@ -97,7 +97,7 @@ if "prediction_choices" in st.session_state:
     if selected_text:
         if selected_text == "Other (Enter manually)":
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual Entry", 0.0, '')
+            st.session_state.selected_entry = ("Manual", 0.0, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
