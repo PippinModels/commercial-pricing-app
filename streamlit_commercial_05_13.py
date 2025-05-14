@@ -96,13 +96,8 @@ if not df.empty:
             index=None,
             label_visibility="collapsed"
         )
-        index=None,
-            
-            label_visibility="collapsed"
-        )) + ["Other (Enter manually)"],
-            index=None,
-            format_func=lambda x: x,
-            label_visibility="collapsed"
+        index=None,label_visibility="collapsed"
+        )) + ["Other (Enter manually)"],index=None,format_func=lambda x: x,label_visibility="collapsed"
         )
 
         if selected_text:
