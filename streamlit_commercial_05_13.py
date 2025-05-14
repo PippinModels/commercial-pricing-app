@@ -52,67 +52,56 @@ if not df.empty:
             predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
-            # Create list of options - this time using simple key codes to avoid formatting issues
-            # We'll use codes like "A", "B", etc. for the radio buttons
-            prediction_pairs = [
-                ("A", "Adjusted Mean – Smoothed Mean", adjusted_mean, smoothed_mean),
-                ("B", "Adjusted Median – Smoothed Median", adjusted_median, smoothed_median),
-                ("C", "Adjusted Mean – Adjusted Median", adjusted_mean, adjusted_median),
-                ("D", "Smoothed Mean – Smoothed Median", smoothed_mean, smoothed_median),
-            ]
-            
+            prediction_options = {
+                "A.": ("Adjusted Mean – Smoothed Mean", adjusted_mean, smoothed_mean),
+                "B.": ("Adjusted Median – Smoothed Median", adjusted_median, smoothed_median),
+                "C.": ("Adjusted Mean – Adjusted Median", adjusted_mean, adjusted_median),
+                "D.": ("Smoothed Mean – Smoothed Median", smoothed_mean, smoothed_median),
+            }
+
             if predicted_mean is not None and predicted_median is not None:
-                prediction_pairs.append(("E", "Predicted Mean – Predicted Median", predicted_mean, predicted_median))
-            
-            # Filter for unique ranges only
-            unique_pairs = []
+                prediction_options["E."] = ("Predicted Mean – Predicted Median", predicted_mean, predicted_median)
+
+            # Create the formatted options with proper dollar sign display
+            formatted_options = {}
             seen_ranges = set()
-            
-            for label, desc, val1, val2 in prediction_pairs:
-                # Sort values to ensure low-high order
-                lo, hi = min(val1, val2), max(val1, val2)
+
+            for label, (desc, lo, hi) in prediction_options.items():
+                # Sort values to ensure lo is always the smaller value
+                lo, hi = min(lo, hi), max(lo, hi)
                 
+                # Format with dollar signs on both values
+                option_text = f"{label} ${lo:.2f} - ${hi:.2f}"
+                
+                # Ensure no duplicates in ranges
                 range_key = (round(lo, 2), round(hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    unique_pairs.append((label, desc, lo, hi))
-            
-            st.session_state.prediction_pairs = unique_pairs
+                    formatted_options[option_text] = (label, desc, lo, hi)
+
+            st.session_state.prediction_choices = formatted_options
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
 
-    # Display price range options if available
-    if "prediction_pairs" in st.session_state:
+    if "prediction_choices" in st.session_state:
         st.subheader("Select Closest Price Range")
-        
-        # Create a list of simple codes for the radio button
-        option_keys = [pair[0] for pair in st.session_state.prediction_pairs] + ["Other"]
-        
-        # Use a simple radio button with codes only
-        selected_key = st.radio(
+        selected_text = st.radio(
             "Choose range:",
-            options=option_keys,
+            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
             index=None,
+            format_func=lambda x: x,
             label_visibility="collapsed"
         )
-        
-        # Display the formatted options separately as a reference table
-        for label, desc, lo, hi in st.session_state.prediction_pairs:
-            st.markdown(f"**{label}. ${lo:.2f} - ${hi:.2f}**")
-        
-        if selected_key:
-            if selected_key == "Other":
+
+        if selected_text:
+            if selected_text == "Other (Enter manually)":
                 manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, None)
             else:
-                # Find the matching entry based on the selected key
-                for label, desc, lo, hi in st.session_state.prediction_pairs:
-                    if label == selected_key:
-                        st.session_state.selection_made = True
-                        st.session_state.selected_entry = (label, desc, lo, hi)
-                        st.success(f"You selected: {label}. ${lo:.2f} - ${hi:.2f}")
-                        break
+                st.session_state.selection_made = True
+                st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
+                st.success(f"You selected: {selected_text}")
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, desc, lo, hi = st.session_state.selected_entry
@@ -159,3 +148,4 @@ if not df.empty:
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
+    
