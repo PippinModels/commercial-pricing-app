@@ -70,14 +70,12 @@ if not df.empty:
 
 
             prediction_options = {
-                f"${min(adjusted_mean, smoothed_mean):,.2f} – ${max(adjusted_mean, smoothed_mean):,.2f}":
-                    [adjusted_mean, smoothed_mean],
-                f"${min(adjusted_median, smoothed_median):,.2f} – ${max(adjusted_median, smoothed_median):,.2f}":
-                    [adjusted_median, smoothed_median],
-                f"${min(adjusted_mean, adjusted_median):,.2f} – ${max(adjusted_mean, adjusted_median):,.2f}":
-                    [adjusted_mean, adjusted_median],
-                f"${min(smoothed_mean, smoothed_median):,.2f} – ${max(smoothed_mean, smoothed_median):,.2f}":
-                    [smoothed_mean, smoothed_median],
+                prediction_options = {
+                "A. Adjusted Mean – Smoothed Mean": sorted([adjusted_mean, smoothed_mean]),
+                "B. Adjusted Median – Smoothed Median": sorted([adjusted_median, smoothed_median]),
+                "C. Adjusted Mean – Adjusted Median": sorted([adjusted_mean, adjusted_median]),
+                "D. Smoothed Mean – Smoothed Median": sorted([smoothed_mean, smoothed_median]),
+           
             }
 
             if predicted_mean is not None and predicted_median is not None:
