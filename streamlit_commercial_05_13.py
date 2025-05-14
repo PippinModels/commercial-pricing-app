@@ -35,6 +35,7 @@ product_hierarchy = {
 }
 
 st.title("Commercial Prediction Model (05/13/25)")
+st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
@@ -145,5 +146,5 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
-            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+            
 
