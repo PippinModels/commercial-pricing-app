@@ -67,9 +67,10 @@ if not df.empty:
             seen_ranges = set()
 
             for label, (desc, values) in prediction_options.items():
-                lo, hi = values[0], values[1]
-                # Display lo and hi as "lo - hi", even if they are the same
-                option_text = f"{label} ${lo:,.2f} - ${hi:,.2f}"
+                if lo == hi:
+                    option_text = f"{label} ${lo:,.2f} - ${lo:,.2f}"
+                else:  
+                    option_text = f"{label} ${lo:,.2f} - ${hi:,.2f}"
 
                 # Ensure no duplicates in ranges
                 range_key = (round(lo, 2), round(hi, 2))
