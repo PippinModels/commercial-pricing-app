@@ -35,6 +35,7 @@ product_hierarchy = {
 }
 
 st.title("Commercial Prediction Model (05/13/25)")
+st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
@@ -97,7 +98,7 @@ if "prediction_choices" in st.session_state:
     if selected_text:
         if selected_text == "Other (Enter manually)":
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", 0.0, '')
+            st.session_state.selected_entry = ("Manual", "Manual Entry", 0.0, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -143,7 +144,7 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
-            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+            
 
     except Exception as e:
         st.error(f"Failed to record selection: {e}")
