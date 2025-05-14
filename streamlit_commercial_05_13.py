@@ -29,10 +29,10 @@ data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
 product_hierarchy = {
-    "Update Search": 1, 
-    "Current Owner Search": 2, 
+    "Update Search": 1,
+    "Current Owner Search": 2,
     "Two Owner Search": 3,
-    "Full 30 YR Search": 4, 
+    "Full 30 YR Search": 4,
     "Full 40 YR Search": 5,
     "Full 50 YR Search": 6,
     "Full 60 YR Search": 7,
@@ -41,7 +41,7 @@ product_hierarchy = {
 }
 
 st.title("Commercial Prediction Model (05/13/25)")
-
+st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
     filtered_df_type = df[df["Mapped Type"] == mapped_type]
@@ -109,7 +109,7 @@ if not df.empty:
                 st.success(f"You selected: {selected_text}")
 
     manual_entry = None
-        if st.session_state.get("selected_entry", (None,))[0] == "Manual":
+    if st.session_state.get("selected_entry", (None,))[0] == "Manual":
             manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
@@ -148,5 +148,5 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
-            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+            
 
