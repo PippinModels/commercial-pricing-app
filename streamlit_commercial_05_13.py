@@ -137,7 +137,7 @@ if not df.empty:
                     mapped_type, mapped_product, online_offline,
                     label,
                     desc,
-                    manual_entry if label == "Manual Entry" else lo,
+                    manual_entry if label == "Manual" else lo,
                     hi,
                     timestamp
                 ])
