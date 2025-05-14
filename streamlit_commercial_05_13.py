@@ -146,5 +146,10 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
+        except Exception as e:
+            st.error(f"Failed to record selection: {e}")
+
+else:
+    st.warning("No prediction file found. Run the pipeline first.")
             
 
