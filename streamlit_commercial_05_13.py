@@ -60,7 +60,7 @@ if not df.empty:
         if not filtered_df.empty:
             row = filtered_df.iloc[0]
 
-
+            
             adjusted_mean = row["Adjusted Forecasted Pricing (mean)"]
             adjusted_median = row["Adjusted Forecasted Pricing (median)"]
             smoothed_mean = row["Smoothed Forecasted Pricing (mean)"]
@@ -68,7 +68,7 @@ if not df.empty:
             predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
-
+            
             prediction_options = {
                 " Adjusted Mean – Smoothed Mean": sorted([adjusted_mean, smoothed_mean]),
                 " Adjusted Median – Smoothed Median": sorted([adjusted_median, smoothed_median]),
@@ -77,37 +77,24 @@ if not df.empty:
             }
 
             if predicted_mean is not None and predicted_median is not None:
-              prediction_options[" Predicted Mean – Predicted Median"] = sorted([predicted_mean, predicted_median])
+                prediction_options[" Predicted Mean – Predicted Median"] = sorted([predicted_mean, predicted_median])
 
+            
+            formatted_options = {}
+            seen_ranges = set()
 
+            for label, values in prediction_options.items():
+                lo, hi = sorted(values)
+                range_key = (round(lo, 2), round(hi, 2))  
+                if range_key not in seen_ranges:
+                    seen_ranges.add(range_key)
+                    option_text = f"{label}: ${lo:,.2f} – ${hi:,.2f}"
+                    formatted_options[option_text] = (label, lo, hi)
 
-            st.subheader("Select Closest Price range")
-            selected_range_label = st.radio("Choose range:", list(prediction_options.keys()))
+            
+            st.session_state.prediction_choices = formatted_options
+            st.session_state.selection_made = False
+            st.session_state.selected_entry = None
 
-            if selected_range_label:
-                selected_range_values = prediction_options[selected_range_label]
-                st.success(f"You selected: {selected_range_label}")
-
-
-                try:
-                    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
-                    sheet_name = "User Prediction Selections"
-
-                    try:
-                        submission_sheet = sheet.worksheet(sheet_name)
-                    except gspread.exceptions.WorksheetNotFound:
-                        submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
-                        submission_sheet.append_row([
-                             "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                            "Selected Range", "Range Start", "Range End", "Timestamp",
-                        ])
-
-                    submission_sheet.append_row([
-                        timestamp, mapped_type, mapped_product, online_offline,
-                        selected_range_label, selected_range_values[0], selected_range_values[1]
-                    ])
-                    st.success("Your selected range has been recorded.")
-                except Exception as e:
-                    st.error(f"Failed to record selection: {e}")
 else:
     st.warning("No prediction file found. Run the pipeline first.")
