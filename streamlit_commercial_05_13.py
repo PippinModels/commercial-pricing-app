@@ -12,7 +12,6 @@ import pandas as pd
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
-from bs4 import BeautifulSoup
 
 # Google Sheets Auth
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -63,24 +62,30 @@ if not df.empty:
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
             prediction_options = {
-                "A.": ("Adjusted Mean – Smoothed Mean", sorted([adjusted_mean, smoothed_mean])),
-                "B.": ("Adjusted Median – Smoothed Median", sorted([adjusted_median, smoothed_median])),
-                "C.": ("Adjusted Mean – Adjusted Median", sorted([adjusted_mean, adjusted_median])),
-                "D.": ("Smoothed Mean – Smoothed Median", sorted([smoothed_mean, smoothed_median])),
+                "A.": ("Adjusted Mean – Smoothed Mean", [adjusted_mean, smoothed_mean]),
+                "B.": ("Adjusted Median – Smoothed Median", [adjusted_median, smoothed_median]),
+                "C.": ("Adjusted Mean – Adjusted Median", [adjusted_mean, adjusted_median]),
+                "D.": ("Smoothed Mean – Smoothed Median", [smoothed_mean, smoothed_median]),
             }
 
             if predicted_mean is not None and predicted_median is not None:
-                prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
+                prediction_options["E."] = ("Predicted Mean – Predicted Median", [predicted_mean, predicted_median])
 
+            # Create the formatted options, handling ranges correctly
             formatted_options = {}
             seen_ranges = set()
 
             for label, (desc, values) in prediction_options.items():
-                lo, hi = values
+                lo, hi = values[0], values[1]
+                if lo == hi:  # If both values are the same, only display one
+                    option_text = f"<strong>{label}</strong><br>${lo:,.2f}"
+                else:  # Otherwise display the range
+                    option_text = f"<strong>{label}</strong><br>${lo:,.2f} – ${hi:,.2f}"
+
+                # Ensure no duplicates in ranges
                 range_key = (round(lo, 2), round(hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    option_text = f"<strong>{label}</strong><br>${lo:,.2f} – ${hi:,.2f}"
                     formatted_options[option_text] = (label, desc, lo, hi)
 
             st.session_state.prediction_choices = formatted_options
@@ -150,3 +155,4 @@ if not df.empty:
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
+
