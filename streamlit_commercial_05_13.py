@@ -71,16 +71,16 @@ if not df.empty:
             if predicted_mean is not None and predicted_median is not None:
                 prediction_options["E."] = ("Predicted Mean – Predicted Median", [predicted_mean, predicted_median])
 
-            # Create the formatted options, handling ranges correctly
+            # Create the formatted options, handling ranges correctly without HTML formatting
             formatted_options = {}
             seen_ranges = set()
 
             for label, (desc, values) in prediction_options.items():
                 lo, hi = values[0], values[1]
                 if lo == hi:  # If both values are the same, only display one
-                    option_text = f"<strong>{label}</strong><br>${lo:,.2f}"
+                    option_text = f"{label} ${lo:,.2f}"
                 else:  # Otherwise display the range
-                    option_text = f"<strong>{label}</strong><br>${lo:,.2f} – ${hi:,.2f}"
+                    option_text = f"{label} ${lo:,.2f} – ${hi:,.2f}"
 
                 # Ensure no duplicates in ranges
                 range_key = (round(lo, 2), round(hi, 2))
@@ -94,7 +94,6 @@ if not df.empty:
 
     if "prediction_choices" in st.session_state:
         st.subheader("Select Closest Price Range")
-        st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
         selected_text = st.radio(
             "Choose range:",
             options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
@@ -155,4 +154,3 @@ if not df.empty:
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
-
