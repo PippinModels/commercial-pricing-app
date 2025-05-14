@@ -29,19 +29,13 @@ data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
 product_hierarchy = {
-    "Update Search": 1,
-    "Current Owner Search": 2,
-    "Two Owner Search": 3,
-    "Full 30 YR Search": 4,
-    "Full 40 YR Search": 5,
-    "Full 50 YR Search": 6,
-    "Full 60 YR Search": 7,
-    "Full 80 YR Search": 8,
-    "Full 100 YR Search": 9,
+    "Update Search": 1, "Current Owner Search": 2, "Two Owner Search": 3,
+    "Full 30 YR Search": 4, "Full 40 YR Search": 5, "Full 50 YR Search": 6,
+    "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
 st.title("Commercial Prediction Model (05/13/25)")
-st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+
 if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
     filtered_df_type = df[df["Mapped Type"] == mapped_type]
@@ -84,7 +78,7 @@ if not df.empty:
                 range_key = (round(lo, 2), round(hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    option_text = f"{label} ${lo:,.2f} – ${hi:,.2f}"
+                    option_text = f"<div style='line-height:1.2'><strong>{label}</strong><br><span style='font-size:14px;'>${lo:,.2f} – ${hi:,.2f}</span></div>"
                     formatted_options[option_text] = (label, desc, lo, hi)
 
             st.session_state.prediction_choices = formatted_options
@@ -93,9 +87,8 @@ if not df.empty:
 
     if "prediction_choices" in st.session_state:
         st.subheader("Select Closest Price Range")
-        selected_text = st.radio(
-            "Choose range:",
-            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
+        selected_text = st.radio(, format_func=lambda x: x, label_visibility="collapsed")) + ["Other (Enter manually)"],
             index=None
         )
 
@@ -148,5 +141,5 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
-            
+            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
