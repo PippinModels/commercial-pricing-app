@@ -94,6 +94,9 @@ if not df.empty:
             "Choose range:",
             options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
             index=None,
+            label_visibility="collapsed"
+        )
+            index=None,
             
             label_visibility="collapsed"
         )) + ["Other (Enter manually)"],
