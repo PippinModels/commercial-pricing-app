@@ -56,11 +56,11 @@ if not df.empty:
 
     filtered_df = filtered_df_product[filtered_df_product["Offline/Online"] == online_offline]
 
-    if st.button("Predict Pricing"):
+        if st.button("Predict Pricing"):
         if not filtered_df.empty:
             row = filtered_df.iloc[0]
 
-
+            # Extract pricing values
             adjusted_mean = row["Adjusted Forecasted Pricing (mean)"]
             adjusted_median = row["Adjusted Forecasted Pricing (median)"]
             smoothed_mean = row["Smoothed Forecasted Pricing (mean)"]
@@ -68,31 +68,44 @@ if not df.empty:
             predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
-
-            prediction_options = {
-                "A. Adjusted Mean – Smoothed Mean": sorted([adjusted_mean, smoothed_mean]),
-                "B. Adjusted Median – Smoothed Median": sorted([adjusted_median, smoothed_median]),
-                "C. Adjusted Mean – Adjusted Median": sorted([adjusted_mean, adjusted_median]),
-                "D. Smoothed Mean – Smoothed Median": sorted([smoothed_mean, smoothed_median]),
-           
+            # Step 1: Full labeled options
+            raw_options = {
+                "A. Adjusted Mean – Smoothed Mean": [adjusted_mean, smoothed_mean],
+                "B. Adjusted Median – Smoothed Median": [adjusted_median, smoothed_median],
+                "C. Adjusted Mean – Adjusted Median": [adjusted_mean, adjusted_median],
+                "D. Smoothed Mean – Smoothed Median": [smoothed_mean, smoothed_median],
             }
 
             if predicted_mean is not None and predicted_median is not None:
-                prediction_options[
-                    f"${min(predicted_mean, predicted_median):,.2f} – ${max(predicted_mean, predicted_median):,.2f}"
-                ] = [predicted_mean, predicted_median]
+                raw_options["E. Predicted Mean – Predicted Median"] = [predicted_mean, predicted_median]
 
+            # Step 2: Deduplicate by value ranges
+            seen_ranges = set()
+            prediction_options = {}
 
+            for label, values in raw_options.items():
+                lo, hi = sorted(values)
+                range_key = (round(lo, 2), round(hi, 2))  # avoid float precision issues
+                if range_key not in seen_ranges:
+                    seen_ranges.add(range_key)
+                    label_with_range = f"{label}: ${lo:,.2f} – ${hi:,.2f}"
+                    prediction_options[label_with_range] = [lo, hi]
+
+            # Step 3: Display radio options with no default
             st.subheader("Select the Most Appropriate Price Range")
-            selected_range_label = st.radio("Choose one range:", list(prediction_options.keys()))
+            selected_range_label = st.radio(
+                "Choose one:", 
+                options=list(prediction_options.keys()),
+                index=None
+            )
 
             if selected_range_label:
                 selected_range_values = prediction_options[selected_range_label]
                 st.success(f"You selected: {selected_range_label}")
 
-
+                # Step 4: Save to Google Sheet
                 try:
-                    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
+                    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
                     sheet_name = "User Prediction Selections"
 
                     try:
@@ -100,8 +113,8 @@ if not df.empty:
                     except gspread.exceptions.WorksheetNotFound:
                         submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
                         submission_sheet.append_row([
-                             "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                            "Selected Range", "Range Start", "Range End", "Timestamp",
+                            "Timestamp", "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                            "Selected Range Label", "Range Start", "Range End"
                         ])
 
                     submission_sheet.append_row([
@@ -111,5 +124,8 @@ if not df.empty:
                     st.success("Your selected range has been recorded.")
                 except Exception as e:
                     st.error(f"Failed to record selection: {e}")
+
 else:
     st.warning("No prediction file found. Run the pipeline first.")
+
+
