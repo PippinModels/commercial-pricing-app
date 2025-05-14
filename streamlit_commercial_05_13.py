@@ -68,14 +68,14 @@ if not df.empty:
             }
 
             if predicted_mean is not None and predicted_median is not None:
-                prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median])) = sorted([predicted_mean, predicted_median])
+                prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
 
             formatted_options = {}
             seen_ranges = set()
 
             for label, (desc, values) in prediction_options.items():
                 lo, hi = values
-                range_key = (round(lo, 2), round('' if label == "Manual Entry" else hi, 2))
+                range_key = (round(lo, 2), round('' if label == "Manual" else hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
                     option_text = f"{label} ${lo:,.2f} – ${hi:,.2f}"
@@ -91,14 +91,12 @@ if not df.empty:
             "Choose range:",
             options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
             index=None
-        )),
-            index=None
         )
 
         if selected_text:
             if selected_text == "Other (Enter manually)":
                 st.session_state.selection_made = True
-                st.session_state.selected_entry = ("Manual", 0, 0)
+                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
             else:
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -137,7 +135,7 @@ if not df.empty:
                     mapped_type, mapped_product, online_offline,
                     label,
                     desc,
-                    manual_entry if label == "Manual" else lo,
+                    manual_entry if label == "Manual Entry" else lo,
                     hi,
                     timestamp
                 ])
