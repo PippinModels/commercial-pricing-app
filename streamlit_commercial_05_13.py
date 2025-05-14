@@ -70,7 +70,6 @@ if not df.empty:
 
 
             prediction_options = {
-                prediction_options = {
                 "A. Adjusted Mean – Smoothed Mean": sorted([adjusted_mean, smoothed_mean]),
                 "B. Adjusted Median – Smoothed Median": sorted([adjusted_median, smoothed_median]),
                 "C. Adjusted Mean – Adjusted Median": sorted([adjusted_mean, adjusted_median]),
