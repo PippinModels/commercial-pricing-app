@@ -12,6 +12,7 @@ import pandas as pd
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
+from bs4 import BeautifulSoup
 
 # Google Sheets Auth
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -79,7 +80,7 @@ if not df.empty:
                 range_key = (round(lo, 2), round(hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    option_text = f"<div style='line-height:1.2'><strong>{label}</strong><br><span style='font-size:14px;'>${lo:,.2f} – ${hi:,.2f}</span></div>"
+                    option_text = f"<strong>{label}</strong><br>${lo:,.2f} – ${hi:,.2f}"
                     formatted_options[option_text] = (label, desc, lo, hi)
 
             st.session_state.prediction_choices = formatted_options
@@ -92,6 +93,10 @@ if not df.empty:
         selected_text = st.radio(
             "Choose range:",
             options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+            index=None,
+            
+            label_visibility="collapsed"
+        )) + ["Other (Enter manually)"],
             index=None,
             format_func=lambda x: x,
             label_visibility="collapsed"
@@ -145,9 +150,7 @@ if not df.empty:
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
-                st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
-            
-
+                
         except Exception as e:
             st.error(f"Failed to record selection: {e}")
 
