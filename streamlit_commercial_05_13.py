@@ -22,7 +22,7 @@ client = gspread.authorize(creds)
 spreadsheet_id = "1YYPoxD46Z0-_BrQhjdDPpU5sSDHwr62j72am5u7wjGE"
 sheet = client.open_by_key(spreadsheet_id)
 summary_sheet = sheet.worksheet("Summary Sheet")
-it
+
 # Convert to DataFrame
 data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
