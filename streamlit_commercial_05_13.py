@@ -96,7 +96,7 @@ if not df.empty:
             index=None,
             label_visibility="collapsed"
         )
-            index=None,
+        index=None,
             
             label_visibility="collapsed"
         )) + ["Other (Enter manually)"],
