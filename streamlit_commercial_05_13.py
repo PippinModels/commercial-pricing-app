@@ -87,9 +87,13 @@ if not df.empty:
 
     if "prediction_choices" in st.session_state:
         st.subheader("Select Closest Price Range")
-st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
-        selected_text = st.radio(, format_func=lambda x: x, label_visibility="collapsed")) + ["Other (Enter manually)"],
-            index=None
+        st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
+        selected_text = st.radio(
+            "Choose range:",
+            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+            index=None,
+            format_func=lambda x: x,
+            label_visibility="collapsed"
         )
 
         if selected_text:
