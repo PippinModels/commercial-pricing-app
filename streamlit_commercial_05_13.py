@@ -52,7 +52,7 @@ if not df.empty:
             predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
-            # Store raw values first, then we'll handle formatting separately
+            # Create list of options without formatting for internal use
             prediction_pairs = [
                 ("A", "Adjusted Mean – Smoothed Mean", adjusted_mean, smoothed_mean),
                 ("B", "Adjusted Median – Smoothed Median", adjusted_median, smoothed_median),
@@ -63,57 +63,60 @@ if not df.empty:
             if predicted_mean is not None and predicted_median is not None:
                 prediction_pairs.append(("E", "Predicted Mean – Predicted Median", predicted_mean, predicted_median))
             
-            # List to store unique display options and their values
-            prediction_options = []
+            # Filter for unique ranges only
+            unique_pairs = []
             seen_ranges = set()
             
             for label, desc, val1, val2 in prediction_pairs:
                 # Sort values to ensure low-high order
                 lo, hi = min(val1, val2), max(val1, val2)
                 
-                # Create unique identifier for the range
                 range_key = (round(lo, 2), round(hi, 2))
-                
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    # Create proper formatted display text
-                    display_text = f"{label}. ${lo:.2f} - ${hi:.2f}"
-                    # Save both display text and values
-                    prediction_options.append((display_text, (label, desc, lo, hi)))
+                    unique_pairs.append((label, desc, lo, hi))
             
-            # Save options to session state for later use
-            st.session_state.prediction_options = prediction_options
+            st.session_state.prediction_pairs = unique_pairs
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
 
-    # Display price range options if we have them
-    if "prediction_options" in st.session_state:
+    # Display price range options if available
+    if "prediction_pairs" in st.session_state:
         st.subheader("Select Closest Price Range")
         
-        # Extract display texts for the radio buttons and create a mapping
-        display_texts = [opt[0] for opt in st.session_state.prediction_options]
-        option_values = [opt[1] for opt in st.session_state.prediction_options]
-        option_map = dict(zip(display_texts, option_values))
-        
-        # Add the "Other" option
-        display_texts.append("Other (Enter manually)")
-        
-        selected_display = st.radio(
-            "Choose range:",
-            options=display_texts,
-            index=None,
-            label_visibility="collapsed"
-        )
-        
-        if selected_display:
-            if selected_display == "Other (Enter manually)":
-                manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
+        # Use individual selectors for each option to ensure proper formatting
+        for label, desc, lo, hi in st.session_state.prediction_pairs:
+            formatted_text = f"{label}. ${lo:.2f} - ${hi:.2f}"
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                selected = st.checkbox("", key=f"option_{label}")
+            with col2:
+                # Use markdown for guaranteed formatting
+                st.markdown(f"**{formatted_text}**")
+            
+            if selected:
                 st.session_state.selection_made = True
-                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, None)
+                st.session_state.selected_entry = (label, desc, lo, hi)
+                
+        # Add manual option 
+        col1, col2 = st.columns([0.1, 0.9])
+        with col1:
+            manual_selected = st.checkbox("", key="option_manual")
+        with col2:
+            st.markdown("**Other (Enter manually)**")
+        
+        if manual_selected:
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
+            st.session_state.selection_made = True
+            st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, None)
+            
+        # Show selected option
+        if st.session_state.get("selection_made", False) and st.session_state.get("selected_entry"):
+            label, desc, lo, hi = st.session_state.selected_entry
+            if label == "Manual":
+                st.success(f"You selected: Manual entry - ${lo:.2f}")
             else:
-                st.session_state.selection_made = True
-                st.session_state.selected_entry = option_map[selected_display]
-                st.success(f"You selected: {selected_display}")
+                st.success(f"You selected: {label}. ${lo:.2f} - ${hi:.2f}")
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, desc, lo, hi = st.session_state.selected_entry
