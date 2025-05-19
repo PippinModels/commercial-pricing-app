@@ -136,7 +136,7 @@ if not df.empty:
 
     # Handle form submission
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
-        label, lo, hi = st.session_state.selected_entry
+        label, desc, lo, hi = st.session_state.selected_entry
         timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
         sheet_name = "User Prediction Selections"
 
@@ -165,8 +165,8 @@ if not df.empty:
                 submission_sheet.append_row([
                     mapped_type, mapped_product, online_offline,
                     label,
-                    lo,  # Only `lo` is used for manual entries
-                    hi,  # Only `hi` is used for manual entries
+                    lo, 
+                    hi,  
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
