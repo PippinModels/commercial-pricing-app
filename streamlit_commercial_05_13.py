@@ -48,7 +48,7 @@ if not df.empty:
         mapped_product = st.text_input("Enter your Mapped Product Ordered:")
     
     # Dropdown for 'Online/Offline' with 'Other' option
-    online_offline_options = list(df["Offline/Online"].unique()) 
+    online_offline_options = list(df["Offline/Online"].unique())
     online_offline = st.selectbox("Select Online/Offline", online_offline_options)
 
     # Filter Data based on user selections or "Other" inputs
