@@ -20,9 +20,15 @@ data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
 product_hierarchy = {
-    "Update Search": 1, "Current Owner Search": 2, "Two Owner Search": 3,
-    "Full 30 YR Search": 4, "Full 40 YR Search": 5, "Full 50 YR Search": 6,
-    "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
+    "Update Search": 1,
+    "Current Owner Search": 2,
+    "Two Owner Search": 3,
+    "Full 30 YR Search": 4,
+    "Full 40 YR Search": 5,
+    "Full 50 YR Search": 6,
+    "Full 60 YR Search": 7,
+    "Full 80 YR Search": 8,
+    "Full 100 YR Search": 9,
 }
 
 st.title("Commercial Prediction Model (05/16/25)")
@@ -42,7 +48,7 @@ if not df.empty:
         mapped_product = st.text_input("Enter your Mapped Product Ordered:")
     
     # Dropdown for 'Online/Offline' with 'Other' option
-    online_offline_options = list(df["Offline/Online"].unique())
+    online_offline_options = list(df["Offline/Online"].unique()) 
     online_offline = st.selectbox("Select Online/Offline", online_offline_options)
 
     # Filter Data based on user selections or "Other" inputs
@@ -51,6 +57,8 @@ if not df.empty:
         (df["Mapped Product Ordered"] == mapped_product) &
         (df["Offline/Online"] == online_offline)
     ]
+
+    prediction_made = False  # Flag to check if prediction was made
 
     if st.button("Predict Pricing"):
         if not filtered_df.empty:
@@ -93,6 +101,7 @@ if not df.empty:
             st.session_state.prediction_choices = formatted_options
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
+            prediction_made = True  # Flag set to True when prediction data exists
 
         else:
             # If no match is found for the custom data, ask the user to manually input the prediction
@@ -100,26 +109,29 @@ if not df.empty:
             manual_predicted_value = st.number_input("Enter Predicted Price", min_value=0.0, format="%.2f")
             st.session_state.selection_made = True
             st.session_state.selected_entry = ("Manual", "Manual Entry", manual_predicted_value, '')
+            prediction_made = True  # Flag set to True when manual entry is allowed
 
-    if "prediction_choices" in st.session_state:
-        st.subheader("Select Closest Price Range")
-        selected_text = st.radio(
-            "Choose range:",
-            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
-            index=None,
-            format_func=lambda x: x,
-            label_visibility="collapsed"
-        )
+    # Only show "Select Closest Price Range" if prediction data is available
+    if prediction_made:
+        if "prediction_choices" in st.session_state:
+            st.subheader("Select Closest Price Range")
+            selected_text = st.radio(
+                "Choose range:",
+                options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+                index=None,
+                format_func=lambda x: x,
+                label_visibility="collapsed"
+            )
 
-        if selected_text:
-            if selected_text == "Other (Enter manually)":
-                manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
-                st.session_state.selection_made = True
-                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
-            else:
-                st.session_state.selection_made = True
-                st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
-                st.success(f"You selected: {selected_text}")
+            if selected_text:
+                if selected_text == "Other (Enter manually)":
+                    manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
+                    st.session_state.selection_made = True
+                    st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
+                else:
+                    st.session_state.selection_made = True
+                    st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
+                    st.success(f"You selected: {selected_text}")
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, lo, hi = st.session_state.selected_entry
