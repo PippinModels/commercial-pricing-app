@@ -20,15 +20,9 @@ data = summary_sheet.get_all_records()
 df = pd.DataFrame(data)
 
 product_hierarchy = {
-    "Update Search": 1,
-    "Current Owner Search": 2,
-    "Two Owner Search": 3,
-    "Full 30 YR Search": 4,
-    "Full 40 YR Search": 5,
-    "Full 50 YR Search": 6,
-    "Full 60 YR Search": 7,
-    "Full 80 YR Search": 8,
-    "Full 100 YR Search": 9,
+    "Update Search": 1, "Current Owner Search": 2, "Two Owner Search": 3,
+    "Full 30 YR Search": 4, "Full 40 YR Search": 5, "Full 50 YR Search": 6,
+    "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
 st.title("Commercial Prediction Model (05/16/25)")
@@ -50,6 +44,7 @@ if not df.empty:
     # Dropdown for 'Online/Offline' with 'Other' option
     online_offline_options = list(df["Offline/Online"].unique())
     online_offline = st.selectbox("Select Online/Offline", online_offline_options)
+    
 
     # Filter Data based on user selections or "Other" inputs
     filtered_df = df[
@@ -133,6 +128,7 @@ if not df.empty:
                     st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
                     st.success(f"You selected: {selected_text}")
 
+    # Handle form submission
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
         label, lo, hi = st.session_state.selected_entry
         timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
