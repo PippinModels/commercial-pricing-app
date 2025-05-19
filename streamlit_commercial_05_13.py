@@ -16,8 +16,12 @@ sheet = client.open_by_key(spreadsheet_id)
 summary_sheet = sheet.worksheet("Summary Sheet")
 
 # Load data
-data = summary_sheet.get_all_records()
-df = pd.DataFrame(data)
+try:
+    data = summary_sheet.get_all_records()
+    df = pd.DataFrame(data)
+except Exception as e:
+    st.error(f"Error loading data from Google Sheets: {e}")
+    st.stop()
 
 product_hierarchy = {
     "Update Search": 1, "Current Owner Search": 2, "Two Owner Search": 3,
@@ -25,8 +29,10 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/16/25)")
+st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+
+prediction_made = False  # Flag to check if prediction was made
 
 if not df.empty:
     # Dropdown for 'Mapped Type' with 'Other' option
@@ -42,9 +48,10 @@ if not df.empty:
         mapped_product = st.text_input("Enter your Mapped Product Ordered:")
     
     # Dropdown for 'Online/Offline' with 'Other' option
-    online_offline_options = list(df["Offline/Online"].unique())
+    online_offline_options = list(df["Offline/Online"].unique()) + ["Other"]
     online_offline = st.selectbox("Select Online/Offline", online_offline_options)
-    
+    if online_offline == "Other":
+        online_offline = st.text_input("Enter Online/Offline Status:")
 
     # Filter Data based on user selections or "Other" inputs
     filtered_df = df[
@@ -52,8 +59,6 @@ if not df.empty:
         (df["Mapped Product Ordered"] == mapped_product) &
         (df["Offline/Online"] == online_offline)
     ]
-
-    prediction_made = False  # Flag to check if prediction was made
 
     if st.button("Predict Pricing"):
         if not filtered_df.empty:
@@ -103,7 +108,8 @@ if not df.empty:
             st.warning("No matching data found. Please enter the predicted price manually.")
             manual_predicted_value = st.number_input("Enter Predicted Price", min_value=0.0, format="%.2f")
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual Entry", manual_predicted_value, '')
+            # Store the manual value as both lo and hi, since there's no higher value
+            st.session_state.selected_entry = ("Manual", "Manual Entry", manual_predicted_value, manual_predicted_value)
             prediction_made = True  # Flag set to True when manual entry is allowed
 
     # Only show "Select Closest Price Range" if prediction data is available
@@ -122,7 +128,7 @@ if not df.empty:
                 if selected_text == "Other (Enter manually)":
                     manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
                     st.session_state.selection_made = True
-                    st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
+                    st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, manual_entry)  # lo and hi are the same
                 else:
                     st.session_state.selection_made = True
                     st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -159,8 +165,8 @@ if not df.empty:
                 submission_sheet.append_row([
                     mapped_type, mapped_product, online_offline,
                     label,
-                    lo if label == "Manual Entry" else lo,
-                    hi,
+                    lo,  # Only `lo` is used for manual entries
+                    hi,  # Only `hi` is used for manual entries
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
