@@ -11,7 +11,7 @@ service_account_info = json.loads(json_key)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 client = gspread.authorize(creds)
 
-spreadsheet_id = "1VWuCzYl69rTP0SOimiS86yPfVO6iTJSEW1BPpnqFzyE"
+spreadsheet_id = "1YYPoxD46Z0-_BrQhjdDPpU5sSDHwr62j72am5u7wjGE"
 sheet = client.open_by_key(spreadsheet_id)
 summary_sheet = sheet.worksheet("Summary Sheet")
 
@@ -25,21 +25,27 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/15/25)")
+st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
-    mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
-    filtered_df_type = df[df["Mapped Type"] == mapped_type]
+    mapped_type = st.selectbox("Select Mapped Type", list(df["Mapped Type"].unique()) + ["Other"])
+    if mapped_type == "Other":
+        mapped_type = st.text_input("Enter your Mapped Type:")
+    
+    mapped_product = st.selectbox("Select Mapped Product Ordered", list(df["Mapped Product Ordered"].unique()) + ["Other"])
+    if mapped_product == "Other":
+        mapped_product = st.text_input("Enter your Mapped Product Ordered:")
+    
+    online_offline = st.selectbox("Select Online/Offline", list(df["Offline/Online"].unique()) + ["Other"])
+    if online_offline == "Other":
+        online_offline = st.text_input("Enter Online/Offline Status:")
 
-    sorted_products = sorted(filtered_df_type["Mapped Product Ordered"].unique(),
-                             key=lambda x: product_hierarchy.get(x, float("inf")))
-    mapped_product = st.selectbox("Select Mapped Product Ordered", sorted_products)
-
-    filtered_df_product = filtered_df_type[filtered_df_type["Mapped Product Ordered"] == mapped_product]
-    online_offline = st.selectbox("Select Online/Offline", filtered_df_product["Offline/Online"].unique())
-
-    filtered_df = filtered_df_product[filtered_df_product["Offline/Online"] == online_offline]
+    filtered_df = df[
+        (df["Mapped Type"] == mapped_type) & 
+        (df["Mapped Product Ordered"] == mapped_product) &
+        (df["Offline/Online"] == online_offline)
+    ]
 
     if st.button("Predict Pricing"):
         if not filtered_df.empty:
@@ -52,32 +58,32 @@ if not df.empty:
             predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
             predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
+            # Prediction options with sorting based on the lower limit of the range (ascending order)
             prediction_options = {
-                "A.": ("Adjusted Mean – Smoothed Mean", adjusted_mean, smoothed_mean),
-                "B.": ("Adjusted Median – Smoothed Median", adjusted_median, smoothed_median),
-                "C.": ("Adjusted Mean – Adjusted Median", adjusted_mean, adjusted_median),
-                "D.": ("Smoothed Mean – Smoothed Median", smoothed_mean, smoothed_median),
+                "Adjusted Mean – Smoothed Mean": sorted([adjusted_mean, smoothed_mean]),
+                "Adjusted Median – Smoothed Median": sorted([adjusted_median, smoothed_median]),
+                "Adjusted Mean – Adjusted Median": sorted([adjusted_mean, adjusted_median]),
+                "Smoothed Mean – Smoothed Median": sorted([smoothed_mean, smoothed_median]),
             }
 
-            if predicted_mean is not None and predicted_median is not None:
-                prediction_options["E."] = ("Predicted Mean – Predicted Median", predicted_mean, predicted_median)
+            # Sort the options by the first value (lower limit) of each pair
+            sorted_prediction_options = dict(sorted(prediction_options.items(), key=lambda item: item[1][0]))
 
-            # Create the formatted options with proper dollar sign display
+            # Format the options with correct display
             formatted_options = {}
             seen_ranges = set()
 
-            for label, (desc, lo, hi) in prediction_options.items():
-                # Sort values to ensure lo is always the smaller value
-                lo, hi = min(lo, hi), max(lo, hi)
-                
-                # Format with dollar signs on both values
-                option_text = f"{label} ${lo:.2f} - ${hi:.2f}"
-                
-                # Ensure no duplicates in ranges
+            for label, values in sorted_prediction_options.items():
+                lo, hi = values[0], values[1]
+                if lo == hi:  # If both values are the same, display as "$lo - $lo"
+                    option_text = f"{label} ${lo:,.2f} - ${lo:,.2f}"
+                else:  # Otherwise display the range with $ symbol for both values
+                    option_text = f"{label} ${lo:,.2f} - ${hi:,.2f}"
+
                 range_key = (round(lo, 2), round(hi, 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    formatted_options[option_text] = (label, desc, lo, hi)
+                    formatted_options[option_text] = (label, lo, hi)
 
             st.session_state.prediction_choices = formatted_options
             st.session_state.selection_made = False
@@ -97,14 +103,14 @@ if not df.empty:
             if selected_text == "Other (Enter manually)":
                 manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
                 st.session_state.selection_made = True
-                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, None)
+                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
             else:
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
                 st.success(f"You selected: {selected_text}")
 
     if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
-        label, desc, lo, hi = st.session_state.selected_entry
+        label, lo, hi = st.session_state.selected_entry
         timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
         sheet_name = "User Prediction Selections"
 
@@ -130,15 +136,11 @@ if not df.empty:
             if duplicate:
                 st.warning("You've already submitted this selection.")
             else:
-                # For manual entry, hi might be None
-                hi_value = hi if hi is not None else ""
-                
                 submission_sheet.append_row([
                     mapped_type, mapped_product, online_offline,
                     label,
-                    desc,
-                    lo if label != "Manual" else manual_entry,
-                    hi_value,
+                    lo if label == "Manual Entry" else lo,
+                    hi,
                     timestamp
                 ])
                 st.success("Your selected range has been recorded.")
@@ -148,4 +150,6 @@ if not df.empty:
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
+
+
     
