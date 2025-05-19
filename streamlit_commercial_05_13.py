@@ -31,7 +31,7 @@ product_hierarchy = {
     "Full 100 YR Search": 9,
 }
 st.title("Commercial Prediction Model (05/13/25)")
-t.subheader("Predicted pricing is based on a single parcel search")
+st.subheader("Predicted pricing is based on a single parcel search")
 
 if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
