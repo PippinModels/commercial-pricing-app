@@ -29,18 +29,25 @@ st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
-    mapped_type = st.selectbox("Select Mapped Type", list(df["Mapped Type"].unique()) + ["Other"])
+    # Dropdown for 'Mapped Type' with 'Other' option
+    mapped_type_options = list(df["Mapped Type"].unique()) + ["Other"]
+    mapped_type = st.selectbox("Select Mapped Type", mapped_type_options)
     if mapped_type == "Other":
         mapped_type = st.text_input("Enter your Mapped Type:")
     
-    mapped_product = st.selectbox("Select Mapped Product Ordered", list(df["Mapped Product Ordered"].unique()) + ["Other"])
+    # Dropdown for 'Mapped Product Ordered' with 'Other' option
+    mapped_product_options = list(df["Mapped Product Ordered"].unique()) + ["Other"]
+    mapped_product = st.selectbox("Select Mapped Product Ordered", mapped_product_options)
     if mapped_product == "Other":
         mapped_product = st.text_input("Enter your Mapped Product Ordered:")
     
-    online_offline = st.selectbox("Select Online/Offline", list(df["Offline/Online"].unique()) + ["Other"])
+    # Dropdown for 'Online/Offline' with 'Other' option
+    online_offline_options = list(df["Offline/Online"].unique()) + ["Other"]
+    online_offline = st.selectbox("Select Online/Offline", online_offline_options)
     if online_offline == "Other":
         online_offline = st.text_input("Enter Online/Offline Status:")
 
+    # Filter Data based on user selections or "Other" inputs
     filtered_df = df[
         (df["Mapped Type"] == mapped_type) & 
         (df["Mapped Product Ordered"] == mapped_product) &
@@ -88,6 +95,13 @@ if not df.empty:
             st.session_state.prediction_choices = formatted_options
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
+
+        else:
+            # If no match is found for the custom data, ask the user to manually input the prediction
+            st.warning("No matching data found. Please enter the predicted price manually.")
+            manual_predicted_value = st.number_input("Enter Predicted Price", min_value=0.0, format="%.2f")
+            st.session_state.selection_made = True
+            st.session_state.selected_entry = ("Manual", "Manual Entry", manual_predicted_value, '')
 
     if "prediction_choices" in st.session_state:
         st.subheader("Select Closest Price Range")
@@ -150,6 +164,3 @@ if not df.empty:
 
 else:
     st.warning("No prediction file found. Run the pipeline first.")
-
-
-    
