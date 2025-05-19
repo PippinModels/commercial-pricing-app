@@ -11,7 +11,9 @@ service_account_info = json.loads(json_key)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 client = gspread.authorize(creds)
 
-spreadsheet_id = "1YYPoxD46Z0-_BrQhjdDPpU5sSDHwr62j72am5u7wjGE"
+
+
+spreadsheet_id = "1VWuCzYl69rTP0SOimiS86yPfVO6iTJSEW1BPpnqFzyE"
 sheet = client.open_by_key(spreadsheet_id)
 summary_sheet = sheet.worksheet("Summary Sheet")
 
