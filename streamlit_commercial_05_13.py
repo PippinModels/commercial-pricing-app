@@ -133,13 +133,16 @@ if not df.empty:
             if duplicate:
                 st.warning("You've already submitted this selection.")
             else:
+
                 submission_sheet.append_row([
-                    mapped_type, mapped_product, online_offline,
-                    label,
-                    desc,
-                    manual_entry if label == "Manual Entry" else lo,
-                    hi,
-                    timestamp
+                    str(mapped_type),
+                    str(mapped_product),
+                    str(online_offline),
+                    str(label),
+                    str(desc),
+                    float(manual_entry) if label == "Manual Entry" else float(lo),
+                    "" if label == "Manual Entry" else float(hi),
+                    str(timestamp)
                 ])
                 st.success("Your selected range has been recorded.")
                 
