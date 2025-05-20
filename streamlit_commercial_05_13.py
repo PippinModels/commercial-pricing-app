@@ -135,14 +135,14 @@ if not df.empty:
             else:
 
                 submission_sheet.append_row([
-                    str(mapped_type),
-                    str(mapped_product),
-                    str(online_offline),
-                    str(label),
-                    str(desc),
-                    float(manual_entry) if label == "Manual Entry" else float(lo),
-                    "" if label == "Manual Entry" else float(hi),
-                    str(timestamp)
+                str(mapped_type),
+                str(mapped_product),
+                str(online_offline),
+                str(label),
+                str(desc),
+                float(manual_entry) if label == "Manual Entry" else float(lo),
+                float(hi) if hi not in ("", None) else "",
+                str(timestamp)
                 ])
                 st.success("Your selected range has been recorded.")
                 
