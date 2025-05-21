@@ -35,7 +35,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/22/25)")
+st.title("Commercial Prediction Model (05/21/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -45,7 +45,7 @@ if not df.empty:
         mapped_type = st.text_input("Enter your Mapped Type:")
 
     mapped_product = st.selectbox("Select Mapped Product Ordered", list(product_hierarchy.keys()))
-    online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
+    online_offline = st.selectbox("Select Online/Offline", ["Online", "Offline"])
 
     if st.button("Predict Pricing"):
         filtered_df = df[
@@ -94,7 +94,7 @@ if not df.empty:
             st.session_state.selection_made = True
             st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
 
-if "prediction_choices" in st.session_state:
+if "prediction_choices" in st.session_state and st.session_state.prediction_choices:
     st.subheader("Select Closest Price Range")
     st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
     selected_text = st.radio(
