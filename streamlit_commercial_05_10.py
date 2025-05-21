@@ -44,14 +44,7 @@ if not df.empty:
     if mapped_type == "Other":
         mapped_type = st.text_input("Enter your Mapped Type:")
 
-    available_products = df[df["Mapped Type"] == mapped_type]["Mapped Product Ordered"].unique().tolist()
-    all_products = list(product_hierarchy.keys())
-    missing_products = [p for p in all_products if p not in available_products]
-
-    mapped_product = st.selectbox("Select Mapped Product Ordered", available_products + ["Other"])
-    if mapped_product == "Other":
-        mapped_product = st.text_input("Enter your Mapped Product Ordered:")
-
+    mapped_product = st.selectbox("Select Mapped Product Ordered", list(product_hierarchy.keys()))
     online_offline = st.selectbox("Select Online/Offline", ["Online", "Offline"])
 
     filtered_df = df[
@@ -60,104 +53,45 @@ if not df.empty:
         (df["Offline/Online"] == online_offline)
     ]
 
-    if missing_products:
-        st.markdown("### Manual Entry for Missing Products")
-        manual_entries = []
-        for product in missing_products:
-            for mode in ["Online", "Offline"]:
-                filtered_check = df[
-                    (df["Mapped Type"] == mapped_type) &
-                    (df["Mapped Product Ordered"] == product) &
-                    (df["Offline/Online"] == mode)
-                ]
-                if filtered_check.empty:
-                    user_input = st.number_input(
-                        f"Enter price for {product} ({mode})",
-                        min_value=0.0,
-                        format="%.2f",
-                        key=f"manual_{product}_{mode}"
-                    )
-                    if user_input > 0:
-                        manual_entries.append([mapped_type, product, mode, "New Manual Entry", "", user_input, "", pd.Timestamp.now().strftime("%Y-%m-%d")])
-
-        if manual_entries:
-            try:
-                manual_sheet = sheet.worksheet("User Prediction Selections")
-            except gspread.exceptions.WorksheetNotFound:
-                manual_sheet = sheet.add_worksheet(title="User Prediction Selections", rows="1000", cols="20")
-                manual_sheet.append_row([
-                    "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                    "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
-                ])
-            for row in manual_entries:
-                manual_sheet.append_row(row)
-
-    # Additional manual entry for any product/channel combination
-    st.markdown("### Add Manual Entry for Any Product")
-    selected_product = st.selectbox("Select Product to Add", list(product_hierarchy.keys()), key="add_product")
-    selected_channel = st.selectbox("Select Channel", ["Online", "Offline"], key="add_channel")
-    added_price = st.number_input("Enter Price", min_value=0.0, format="%.2f", key="add_price")
-    if st.button("Add Manual Entry"):
-        try:
-            manual_sheet = sheet.worksheet("User Prediction Selections")
-        except gspread.exceptions.WorksheetNotFound:
-            manual_sheet = sheet.add_worksheet(title="User Prediction Selections", rows="1000", cols="20")
-            manual_sheet.append_row([
-                "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
-            ])
-        existing_entries = manual_sheet.get_all_records()
-        is_duplicate = any(
-            row["Mapped Type"] == mapped_type and
-            row["Mapped Product Ordered"] == selected_product and
-            row["Offline/Online"] == selected_channel and
-            row["Selection Label"] == "New Manual Entry"
-            for row in existing_entries
-        )
-        if is_duplicate:
-            st.warning("This manual entry already exists.")
-        else:
-            manual_sheet.append_row([
-                mapped_type, selected_product, selected_channel,
-                "New Manual Entry", "", added_price, "", pd.Timestamp.now().strftime("%Y-%m-%d")
-            ])
-            st.success("Manual entry added successfully.")
-            st.success("Manual entry added successfully.")
-
     if not filtered_df.empty:
-            row = filtered_df.iloc[0]
+        row = filtered_df.iloc[0]
 
-            adjusted_mean = row["Adjusted Forecasted Pricing (mean)"]
-            adjusted_median = row["Adjusted Forecasted Pricing (median)"]
-            smoothed_mean = row["Smoothed Forecasted Pricing (mean)"]
-            smoothed_median = row["Smoothed Forecasted Pricing (median)"]
-            predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
-            predicted_median = row.get("Predicted Forecasted Pricing (median)")
+        adjusted_mean = row["Adjusted Forecasted Pricing (mean)"]
+        adjusted_median = row["Adjusted Forecasted Pricing (median)"]
+        smoothed_mean = row["Smoothed Forecasted Pricing (mean)"]
+        smoothed_median = row["Smoothed Forecasted Pricing (median)"]
+        predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
+        predicted_median = row.get("Predicted Forecasted Pricing (median)")
 
-            prediction_options = {
-                "A.": ("Adjusted Mean – Smoothed Mean", sorted([adjusted_mean, smoothed_mean])),
-                "B.": ("Adjusted Median – Smoothed Median", sorted([adjusted_median, smoothed_median])),
-                "C.": ("Adjusted Mean – Adjusted Median", sorted([adjusted_mean, adjusted_median])),
-                "D.": ("Smoothed Mean – Smoothed Median", sorted([smoothed_mean, smoothed_median])),
-            }
+        prediction_options = {
+            "A.": ("Adjusted Mean – Smoothed Mean", sorted([adjusted_mean, smoothed_mean])),
+            "B.": ("Adjusted Median – Smoothed Median", sorted([adjusted_median, smoothed_median])),
+            "C.": ("Adjusted Mean – Adjusted Median", sorted([adjusted_mean, adjusted_median])),
+            "D.": ("Smoothed Mean – Smoothed Median", sorted([smoothed_mean, smoothed_median])),
+        }
 
-            if predicted_mean is not None and predicted_median is not None:
-                prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
+        if predicted_mean is not None and predicted_median is not None:
+            prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
 
-            formatted_options = {}
-            seen_ranges = set()
+        formatted_options = {}
+        seen_ranges = set()
 
-            for label, (desc, values) in prediction_options.items():
-                lo, hi = [int(-(-x // 5) * 5) for x in values]
-                range_key = (lo, hi)
-                if range_key not in seen_ranges:
-                    seen_ranges.add(range_key)
-                    option_text = f"${lo:,} – ${hi:,}"
-                    formatted_options[option_text] = (label, desc, lo, hi)
+        for label, (desc, values) in prediction_options.items():
+            lo, hi = [int(-(-x // 5) * 5) for x in values]
+            range_key = (lo, hi)
+            if range_key not in seen_ranges:
+                seen_ranges.add(range_key)
+                option_text = f"${lo:,} – ${hi:,}"
+                formatted_options[option_text] = (label, desc, lo, hi)
 
-            st.session_state.prediction_choices = formatted_options
-            st.session_state.selection_made = False
-            st.session_state.selected_entry = None
+        st.session_state.prediction_choices = formatted_options
+        st.session_state.selection_made = False
+        st.session_state.selected_entry = None
+
+    else:
+        manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0.0, format="%.2f")
+        st.session_state.selection_made = True
+        st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
 
 if "prediction_choices" in st.session_state:
     st.subheader("Select Closest Price Range")
@@ -173,7 +107,7 @@ if "prediction_choices" in st.session_state:
         if selected_text == "Other (Enter manually)":
             manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
+            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -210,8 +144,8 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 mapped_type, mapped_product, online_offline,
                 label,
                 desc,
-                int(manual_entry) if label == "Manual Entry" else int(lo),
-                '' if label == "Manual Entry" else int(hi),
+                int(lo) if label != "Manual" else int(manual_entry),
+                int(hi) if label != "Manual" and hi != '' else '',
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
