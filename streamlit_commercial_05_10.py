@@ -43,6 +43,7 @@ if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", mapped_type_options)
     if mapped_type == "Other":
         mapped_type = st.text_input("Enter your Mapped Type:")
+    filtered_df_type = df[df["Mapped Type"] == mapped_type]
 
     sorted_products = sorted(filtered_df_type["Mapped Product Ordered"].unique(),
                              key=lambda x: product_hierarchy.get(x, float("inf")))
@@ -82,7 +83,7 @@ if not df.empty:
                 range_key = (lo, hi)
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
-                    option_text = f"{label} ${lo:,} – ${hi:,}"
+                    option_text = f"${lo:,} – ${hi:,}"
                     formatted_options[option_text] = (label, desc, lo, hi)
 
             st.session_state.prediction_choices = formatted_options
@@ -129,7 +130,7 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
             row["Mapped Type"] == mapped_type and
             row["Mapped Product Ordered"] == mapped_product and
             row["Offline/Online"] == online_offline and
-            row["Selected Label"] == label
+            row["Selection Label"] == label
             for row in existing
         )
 
