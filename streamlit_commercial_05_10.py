@@ -45,7 +45,7 @@ if not df.empty:
         mapped_type = st.text_input("Enter your Mapped Type:")
 
     mapped_product = st.selectbox("Select Mapped Product Ordered", list(product_hierarchy.keys()))
-    online_offline = st.selectbox("Select Online/Offline", ["Online", "Offline"])
+    online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
 
     filtered_df = df[
         (df["Mapped Type"] == mapped_type) &
