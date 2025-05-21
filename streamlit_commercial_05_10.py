@@ -157,3 +157,4 @@ if not df.empty:
                 ])
                 st.success("Your selected range has been recorded.")
                 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+            
