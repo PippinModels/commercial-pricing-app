@@ -35,7 +35,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/22/25)")
+st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -43,19 +43,56 @@ if not df.empty:
     mapped_type = st.selectbox("Select Mapped Type", mapped_type_options)
     if mapped_type == "Other":
         mapped_type = st.text_input("Enter your Mapped Type:")
-    filtered_df_type = df[df["Mapped Type"] == mapped_type]
 
-    sorted_products = sorted(filtered_df_type["Mapped Product Ordered"].unique(),
-                             key=lambda x: product_hierarchy.get(x, float("inf")))
-    mapped_product = st.selectbox("Select Mapped Product Ordered", sorted_products)
+    available_products = df[df["Mapped Type"] == mapped_type]["Mapped Product Ordered"].unique().tolist()
+    all_products = list(product_hierarchy.keys())
+    missing_products = [p for p in all_products if p not in available_products]
 
-    filtered_df_product = filtered_df_type[filtered_df_type["Mapped Product Ordered"] == mapped_product]
-    online_offline = st.selectbox("Select Online/Offline", filtered_df_product["Offline/Online"].unique())
+    mapped_product = st.selectbox("Select Mapped Product Ordered", available_products + ["Other"])
+    if mapped_product == "Other":
+        mapped_product = st.text_input("Enter your Mapped Product Ordered:")
 
-    filtered_df = filtered_df_product[filtered_df_product["Offline/Online"] == online_offline]
+    online_offline = st.selectbox("Select Online/Offline", ["Online", "Offline"])
 
-    if st.button("Predict Pricing"):
-        if not filtered_df.empty:
+    filtered_df = df[
+        (df["Mapped Type"] == mapped_type) &
+        (df["Mapped Product Ordered"] == mapped_product) &
+        (df["Offline/Online"] == online_offline)
+    ]
+
+    if missing_products:
+        st.markdown("### Manual Entry for Missing Products")
+        manual_entries = []
+        for product in missing_products:
+            for mode in ["Online", "Offline"]:
+                filtered_check = df[
+                    (df["Mapped Type"] == mapped_type) &
+                    (df["Mapped Product Ordered"] == product) &
+                    (df["Offline/Online"] == mode)
+                ]
+                if filtered_check.empty:
+                    user_input = st.number_input(
+                        f"Enter price for {product} ({mode})",
+                        min_value=0.0,
+                        format="%.2f",
+                        key=f"manual_{product}_{mode}"
+                    )
+                    if user_input > 0:
+                        manual_entries.append([mapped_type, product, mode, "Created Manual", "", user_input, "", pd.Timestamp.now().strftime("%Y-%m-%d")])
+
+        if manual_entries:
+            try:
+                manual_sheet = sheet.worksheet("User Prediction Selections")
+            except gspread.exceptions.WorksheetNotFound:
+                manual_sheet = sheet.add_worksheet(title="User Prediction Selections", rows="1000", cols="20")
+                manual_sheet.append_row([
+                    "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                    "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
+                ])
+            for row in manual_entries:
+                manual_sheet.append_row(row)
+
+    if not filtered_df.empty:
             row = filtered_df.iloc[0]
 
             adjusted_mean = row["Adjusted Forecasted Pricing (mean)"]
