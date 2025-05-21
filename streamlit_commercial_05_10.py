@@ -77,7 +77,7 @@ if not df.empty:
 
             for label, (desc, values) in prediction_options.items():
                 lo, hi = [int(-(-x // 5) * 5) for x in values]
-                range_key = (round(lo, 2), round(hi, 2))
+                range_key = (round(lo, 2), round('' if label == "Manual Entry" else int(hi), 2))
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
                     option_text = f"<strong>{label}</strong><br>${lo:,} – ${hi:,}"
@@ -93,6 +93,9 @@ if not df.empty:
         selected_text = st.radio(
             "Choose range:",
             options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+            index=None,
+            label_visibility="collapsed"
+        )) + ["Other (Enter manually)"],
             index=None,
             label_visibility="collapsed"
         )
@@ -151,7 +154,7 @@ if not df.empty:
                     mapped_type, mapped_product, online_offline,
                     label,
                     desc,
-                    manual_entry if label == "Manual Entry" else lo,
+                    int(manual_entry) if label == "Manual Entry" else int(lo),
                     hi,
                     timestamp
                 ])
