@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/15/25)")
+st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -36,7 +36,7 @@ if not df.empty:
         mapped_type = st.text_input("Enter your Mapped Type:")
 
     mapped_product = st.selectbox("Select Mapped Product Ordered", list(product_hierarchy.keys()))
-    online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
+    online_offline = st.selectbox("Select Online/Offline", ["Online", "Offline"])
 
     if st.button("Predict Pricing"):
         filtered_df = df[
@@ -65,10 +65,12 @@ if not df.empty:
             if predicted_mean is not None and predicted_median is not None:
                 prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
 
+            sorted_prediction_options = dict(sorted(prediction_options.items(), key=lambda item: item[1][0]))
+
             formatted_options = {}
             seen_ranges = set()
 
-            for label, (desc, values) in prediction_options.items():
+            for label, (desc, values) in sorted_prediction_options.items():
                 lo, hi = [int(-(-x // 5) * 5) for x in values]
                 range_key = (lo, hi)
                 if range_key not in seen_ranges:
@@ -137,8 +139,8 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 mapped_type, mapped_product, online_offline,
                 label,
                 desc,
-                int(lo),
-                int(hi) if hi != '' else '',
+                int(lo) if label != "Manual" else int(manual_entry),
+                int(hi) if label != "Manual" and hi != '' else '',
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
