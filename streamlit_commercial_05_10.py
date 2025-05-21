@@ -139,8 +139,8 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 mapped_type, mapped_product, online_offline,
                 label,
                 desc,
-                int(lo) if label != "Manual" else int(manual_entry),
-                int(hi) if label != "Manual" and hi != '' else '',
+                int(lo),
+                int(hi) if hi != '' else '',
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
