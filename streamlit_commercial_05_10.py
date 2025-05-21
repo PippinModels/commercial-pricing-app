@@ -77,7 +77,7 @@ if not df.empty:
 
             for label, (desc, values) in prediction_options.items():
                 lo, hi = [int(-(-x // 5) * 5) for x in values]
-                range_key = (round(lo, 2), round('' if label == "Manual Entry" else int(hi), 2))
+                range_key = (lo, hi)
                 if range_key not in seen_ranges:
                     seen_ranges.add(range_key)
                     option_text = f"<strong>{label}</strong><br>${lo:,} – ${hi:,}"
@@ -87,80 +87,62 @@ if not df.empty:
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
 
-    if "prediction_choices" in st.session_state:
-        st.subheader("Select Closest Price Range")
-        st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
-        selected_text = st.radio(
-            "Choose range:",
-            options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
-            index=None,
-            label_visibility="collapsed"
-        )
-            index=None,
-            label_visibility="collapsed"
-        )) + ["Other (Enter manually)"],
-            index=None,
-            label_visibility="collapsed"
-        )
-            index=None,
-            label_visibility="collapsed"
-        )
-            index=None,
-            
-            label_visibility="collapsed"
-        )) + ["Other (Enter manually)"],
-            index=None,
-            format_func=lambda x: x,
-            label_visibility="collapsed"
-        )
+if "prediction_choices" in st.session_state:
+    st.subheader("Select Closest Price Range")
+    st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
+    selected_text = st.radio(
+        "Choose range:",
+        options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
+        index=None,
+        label_visibility="collapsed"
+    )
 
-        if selected_text:
-            if selected_text == "Other (Enter manually)":
-                manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
-                st.session_state.selection_made = True
-                st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
-            else:
-                st.session_state.selection_made = True
-                st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
-                st.success(f"You selected: {selected_text}")
+    if selected_text:
+        if selected_text == "Other (Enter manually)":
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
+            st.session_state.selection_made = True
+            st.session_state.selected_entry = ("Manual", "Manual Entry", manual_entry, '')
+        else:
+            st.session_state.selection_made = True
+            st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
+            st.success(f"You selected: {selected_text}")
 
-    
+if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
+    label, desc, lo, hi = st.session_state.selected_entry
+    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
+    sheet_name = "User Prediction Selections"
 
-    if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
-        label, desc, lo, hi = st.session_state.selected_entry
-        timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
-        sheet_name = "User Prediction Selections"
-
+    try:
         try:
-            try:
-                submission_sheet = sheet.worksheet(sheet_name)
-            except gspread.exceptions.WorksheetNotFound:
-                submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
-                submission_sheet.append_row([
-                    "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                    "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
-                ])
+            submission_sheet = sheet.worksheet(sheet_name)
+        except gspread.exceptions.WorksheetNotFound:
+            submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
+            submission_sheet.append_row([
+                "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
+            ])
 
-            existing = submission_sheet.get_all_records()
-            duplicate = any(
-                row["Mapped Type"] == mapped_type and
-                row["Mapped Product Ordered"] == mapped_product and
-                row["Offline/Online"] == online_offline and
-                row["Selected Range"] == label
-                for row in existing
-            )
+        existing = submission_sheet.get_all_records()
+        duplicate = any(
+            row["Mapped Type"] == mapped_type and
+            row["Mapped Product Ordered"] == mapped_product and
+            row["Offline/Online"] == online_offline and
+            row["Selected Range"] == label
+            for row in existing
+        )
 
-            if duplicate:
-                st.warning("You've already submitted this selection.")
-            else:
-                submission_sheet.append_row([
-                    mapped_type, mapped_product, online_offline,
-                    label,
-                    desc,
-                    int(manual_entry) if label == "Manual Entry" else int(lo),
-                    hi,
-                    timestamp
-                ])
-                st.success("Your selected range has been recorded.")
-                st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
-            
+        if duplicate:
+            st.warning("You've already submitted this selection.")
+        else:
+            submission_sheet.append_row([
+                mapped_type, mapped_product, online_offline,
+                label,
+                desc,
+                int(manual_entry) if label == "Manual Entry" else int(lo),
+                '' if label == "Manual Entry" else int(hi),
+                timestamp
+            ])
+            st.success("Your selected range has been recorded.")
+            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
+    except Exception as e:
+        st.error(f"Failed to record selection: {e}")
