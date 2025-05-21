@@ -35,7 +35,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/22/25)")
+st.title("Commercial Prediction Model (05/21/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -78,7 +78,7 @@ if not df.empty:
                         key=f"manual_{product}_{mode}"
                     )
                     if user_input > 0:
-                        manual_entries.append([mapped_type, product, mode, "Created Manual", "", user_input, "", pd.Timestamp.now().strftime("%Y-%m-%d")])
+                        manual_entries.append([mapped_type, product, mode, "New Manual Entry", "", user_input, "", pd.Timestamp.now().strftime("%Y-%m-%d")])
 
         if manual_entries:
             try:
@@ -91,6 +91,38 @@ if not df.empty:
                 ])
             for row in manual_entries:
                 manual_sheet.append_row(row)
+
+    # Additional manual entry for any product/channel combination
+    st.markdown("### Add Manual Entry for Any Product")
+    selected_product = st.selectbox("Select Product to Add", list(product_hierarchy.keys()), key="add_product")
+    selected_channel = st.selectbox("Select Channel", ["Online", "Offline"], key="add_channel")
+    added_price = st.number_input("Enter Price", min_value=0.0, format="%.2f", key="add_price")
+    if st.button("Add Manual Entry"):
+        try:
+            manual_sheet = sheet.worksheet("User Prediction Selections")
+        except gspread.exceptions.WorksheetNotFound:
+            manual_sheet = sheet.add_worksheet(title="User Prediction Selections", rows="1000", cols="20")
+            manual_sheet.append_row([
+                "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
+            ])
+        existing_entries = manual_sheet.get_all_records()
+        is_duplicate = any(
+            row["Mapped Type"] == mapped_type and
+            row["Mapped Product Ordered"] == selected_product and
+            row["Offline/Online"] == selected_channel and
+            row["Selection Label"] == "New Manual Entry"
+            for row in existing_entries
+        )
+        if is_duplicate:
+            st.warning("This manual entry already exists.")
+        else:
+            manual_sheet.append_row([
+                mapped_type, selected_product, selected_channel,
+                "New Manual Entry", "", added_price, "", pd.Timestamp.now().strftime("%Y-%m-%d")
+            ])
+            st.success("Manual entry added successfully.")
+            st.success("Manual entry added successfully.")
 
     if not filtered_df.empty:
             row = filtered_df.iloc[0]
