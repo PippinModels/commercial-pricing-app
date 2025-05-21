@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/21/25)")
+st.title("Commercial Prediction Model (05/20/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -83,8 +83,8 @@ if not df.empty:
             st.session_state.selected_entry = None
 
         else:
-            st.session_state.prediction_choices = {} 
-            manual_entry = st.number_input("No prediction found. Enter your own predicted value:",min_value=0, format="%d")
+            st.session_state.prediction_choices = {}  # Clear previous predictions
+            manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d")
             st.session_state.selection_made = True
             st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
 
@@ -140,12 +140,13 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
         if duplicate:
             st.warning("You've already submitted this selection.")
         else:
+            selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
             submission_sheet.append_row([
                 mapped_type, mapped_product, online_offline,
                 label,
-                desc,
-                int(lo) if label != "Manual" else int(manual_entry),
-                int(hi) if label != "Manual" and hi != '' else '',
+                selected_range_text,
+                int(lo),
+                int(hi) if hi != '' else '',
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
