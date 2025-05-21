@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/20/25)")
+st.title("Commercial Prediction Model (05/19/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -86,7 +86,7 @@ if not df.empty:
             st.session_state.prediction_choices = {}  # Clear previous predictions
             manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d")
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
+            st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
 
 if "prediction_choices" in st.session_state and st.session_state.prediction_choices:
     st.subheader("Select Closest Price Range")
@@ -102,7 +102,7 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
         if selected_text == "Other (Enter manually)":
             manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d")
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
+            st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
