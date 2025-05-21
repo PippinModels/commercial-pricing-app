@@ -143,12 +143,14 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
         else:
             selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
             submission_sheet.append_row([
-                mapped_type, mapped_product, online_offline,
-                label,
-                selected_range_text,
-                int(lo),
-                int(hi) if hi != '' else '',
-                timestamp
+                str(mapped_type),
+                str(mapped_product),
+                str(online_offline),
+                str(label),
+                str(desc),
+                float(manual_entry) if label == "Manual Entry" else float(lo),
+                float(hi) if hi not in ("", None) else "",
+                str(timestamp)
             ])
             st.success("Your selected range has been recorded.")
     except Exception as e:
