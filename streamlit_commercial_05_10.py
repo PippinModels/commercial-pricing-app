@@ -39,8 +39,10 @@ st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
-    mapped_type = st.selectbox("Select Mapped Type", df["Mapped Type"].unique())
-    filtered_df_type = df[df["Mapped Type"] == mapped_type]
+    mapped_type_options = list(df["Mapped Type"].unique()) + ["Other"]
+    mapped_type = st.selectbox("Select Mapped Type", mapped_type_options)
+    if mapped_type == "Other":
+        mapped_type = st.text_input("Enter your Mapped Type:")
 
     sorted_products = sorted(filtered_df_type["Mapped Product Ordered"].unique(),
                              key=lambda x: product_hierarchy.get(x, float("inf")))
