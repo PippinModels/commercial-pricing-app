@@ -101,8 +101,8 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
     if selected_text:
         if selected_text == "Other (Enter manually)":
             manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
-            st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
+            if manual_entry > 0:
+                st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -139,8 +139,8 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 mapped_type, mapped_product, online_offline,
                 label,
                 desc,
-                int(lo),
-                int(hi) if hi != '' else '',
+                int(lo) if isinstance(lo, (int, float)) else '',
+                int(hi) if isinstance(hi, (int, float)) else '',
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
