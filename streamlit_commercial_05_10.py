@@ -35,7 +35,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/25/25)")
+st.title("Commercial Prediction Model (05/22/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -93,46 +93,6 @@ if not df.empty:
             manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0.0, format="%.2f")
             st.session_state.selection_made = True
             st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
-
-    if not filtered_df.empty:
-        row = filtered_df.iloc[0]
-
-        adjusted_mean = row["Adjusted Forecasted Pricing (mean)"]
-        adjusted_median = row["Adjusted Forecasted Pricing (median)"]
-        smoothed_mean = row["Smoothed Forecasted Pricing (mean)"]
-        smoothed_median = row["Smoothed Forecasted Pricing (median)"]
-        predicted_mean = row.get("Predicted Forecasted Pricing (mean)")
-        predicted_median = row.get("Predicted Forecasted Pricing (median)")
-
-        prediction_options = {
-            "A.": ("Adjusted Mean – Smoothed Mean", sorted([adjusted_mean, smoothed_mean])),
-            "B.": ("Adjusted Median – Smoothed Median", sorted([adjusted_median, smoothed_median])),
-            "C.": ("Adjusted Mean – Adjusted Median", sorted([adjusted_mean, adjusted_median])),
-            "D.": ("Smoothed Mean – Smoothed Median", sorted([smoothed_mean, smoothed_median])),
-        }
-
-        if predicted_mean is not None and predicted_median is not None:
-            prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
-
-        formatted_options = {}
-        seen_ranges = set()
-
-        for label, (desc, values) in prediction_options.items():
-            lo, hi = [int(-(-x // 5) * 5) for x in values]
-            range_key = (lo, hi)
-            if range_key not in seen_ranges:
-                seen_ranges.add(range_key)
-                option_text = f"${lo:,} – ${hi:,}"
-                formatted_options[option_text] = (label, desc, lo, hi)
-
-        st.session_state.prediction_choices = formatted_options
-        st.session_state.selection_made = False
-        st.session_state.selected_entry = None
-
-    else:
-        manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0.0, format="%.2f")
-        st.session_state.selection_made = True
-        st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
 
 if "prediction_choices" in st.session_state:
     st.subheader("Select Closest Price Range")
