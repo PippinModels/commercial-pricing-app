@@ -35,7 +35,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/21/25)")
+st.title("Commercial Prediction Model (05/13/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -45,13 +45,14 @@ if not df.empty:
         mapped_type = st.text_input("Enter your Mapped Type:")
 
     mapped_product = st.selectbox("Select Mapped Product Ordered", list(product_hierarchy.keys()))
-    online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
+    online_offline = st.selectbox("Select Online/Offline", ["Online", "Offline"])
 
-    filtered_df = df[
-        (df["Mapped Type"] == mapped_type) &
-        (df["Mapped Product Ordered"] == mapped_product) &
-        (df["Offline/Online"] == online_offline)
-    ]
+    if st.button("Predict Pricing"):
+        filtered_df = df[
+            (df["Mapped Type"] == mapped_type) &
+            (df["Mapped Product Ordered"] == mapped_product) &
+            (df["Offline/Online"] == online_offline)
+        ]
 
     if not filtered_df.empty:
         row = filtered_df.iloc[0]
