@@ -83,8 +83,8 @@ if not df.empty:
             st.session_state.selected_entry = None
 
         else:
-            st.session_state.prediction_choices = {}  # Clear previous predictions
-            manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0.0, format="%.2f")
+            st.session_state.prediction_choices = {} 
+            manual_entry = st.number_input("No prediction found. Enter your own predicted value:",min_value=0, format="%d")
             st.session_state.selection_made = True
             st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
 
@@ -100,9 +100,9 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 
     if selected_text:
         if selected_text == "Other (Enter manually)":
-            manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
-            if manual_entry > 0:
-                st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d")
+            st.session_state.selection_made = True
+            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -118,10 +118,15 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
             submission_sheet = sheet.worksheet(sheet_name)
         except gspread.exceptions.WorksheetNotFound:
             submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
-            submission_sheet.append_row([
-                "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-                "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
-            ])
+
+        expected_headers = [
+            "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+            "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
+        ]
+        existing_data = submission_sheet.get_all_values()
+        if not existing_data or existing_data[0] != expected_headers:
+            submission_sheet.clear()
+            submission_sheet.append_row(expected_headers)
 
         existing = submission_sheet.get_all_records()
         duplicate = any(
@@ -139,11 +144,10 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 mapped_type, mapped_product, online_offline,
                 label,
                 desc,
-                int(lo) if isinstance(lo, (int, float)) else '',
-                int(hi) if isinstance(hi, (int, float)) else '',
+                int(lo) if label != "Manual" else int(manual_entry),
+                int(hi) if label != "Manual" and hi != '' else '',
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
-            st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
     except Exception as e:
         st.error(f"Failed to record selection: {e}")
