@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/19/25)")
+st.title("Commercial Prediction Model (05/17/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -65,12 +65,10 @@ if not df.empty:
             if predicted_mean is not None and predicted_median is not None:
                 prediction_options["E."] = ("Predicted Mean – Predicted Median", sorted([predicted_mean, predicted_median]))
 
-            sorted_prediction_options = dict(sorted(prediction_options.items(), key=lambda item: item[1][0]))
-
             formatted_options = {}
             seen_ranges = set()
 
-            for label, (desc, values) in sorted_prediction_options.items():
+            for label, (desc, values) in prediction_options.items():
                 lo, hi = [int(-(-x // 5) * 5) for x in values]
                 range_key = (lo, hi)
                 if range_key not in seen_ranges:
@@ -84,25 +82,25 @@ if not df.empty:
 
         else:
             st.session_state.prediction_choices = {}  # Clear previous predictions
-            manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d")
+            manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0.0, format="%.2f")
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
+            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
 
 if "prediction_choices" in st.session_state and st.session_state.prediction_choices:
     st.subheader("Select Closest Price Range")
     st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
     selected_text = st.radio(
         "Choose range:",
-        options=sorted(list(st.session_state.prediction_choices.keys()), key=lambda x: int(x.strip('$').split('–')[0].replace(',', '').strip())) + ["Other (Enter manually)"],
+        options=list(st.session_state.prediction_choices.keys()) + ["Other (Enter manually)"],
         index=None,
         label_visibility="collapsed"
     )
 
     if selected_text:
         if selected_text == "Other (Enter manually)":
-            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d")
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0.0, format="%.2f")
             st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
+            st.session_state.selected_entry = ("Manual", "New Manual Entry", manual_entry, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -118,15 +116,10 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
             submission_sheet = sheet.worksheet(sheet_name)
         except gspread.exceptions.WorksheetNotFound:
             submission_sheet = sheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
-
-        expected_headers = [
-            "Mapped Type", "Mapped Product Ordered", "Offline/Online",
-            "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
-        ]
-        existing_data = submission_sheet.get_all_values()
-        if not existing_data or existing_data[0] != expected_headers:
-            submission_sheet.clear()
-            submission_sheet.append_row(expected_headers)
+            submission_sheet.append_row([
+                "Mapped Type", "Mapped Product Ordered", "Offline/Online",
+                "Selection Label", "Selected Range", "Range Start", "Range End", "Timestamp"
+            ])
 
         existing = submission_sheet.get_all_records()
         duplicate = any(
@@ -140,11 +133,10 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
         if duplicate:
             st.warning("You've already submitted this selection.")
         else:
-            selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
             submission_sheet.append_row([
                 mapped_type, mapped_product, online_offline,
                 label,
-                selected_range_text,
+                desc,
                 int(lo),
                 int(hi) if hi != '' else '',
                 timestamp
