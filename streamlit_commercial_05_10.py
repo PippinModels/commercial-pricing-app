@@ -127,7 +127,7 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
             row["Mapped Type"] == mapped_type and
             row["Mapped Product Ordered"] == mapped_product and
             row["Offline/Online"] == online_offline and
-            row["Selected Range"] == label
+            row["Selected Label"] == label
             for row in existing
         )
 
