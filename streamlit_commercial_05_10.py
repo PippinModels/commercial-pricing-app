@@ -102,7 +102,16 @@ if st.session_state.get("show_manual_input", False):
 
 if "prediction_choices" in st.session_state and st.session_state.prediction_choices:
     st.subheader("Select Closest Price Range")
-    st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
+    st.markdown("""
+        <style>
+        div.row-widget.stRadio > div{flex-direction: column;}
+        div.row-widget.stRadio > div > label > div {
+            font-family: monospace !important;
+            font-size: 14px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    #st.markdown("<style>div.row-widget.stRadio > div{flex-direction: column;}</style>", unsafe_allow_html=True)
     selected_text = st.radio(
         "Choose range:",
         options=sorted(list(st.session_state.prediction_choices.keys()), key=lambda x: int(x.strip('$').split('–')[0].replace(',', '').strip())) + ["Other (Enter manually)"],
