@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/21/25)")
+st.title("Commercial Prediction Model (05/22/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -172,9 +172,11 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
-            # Clear the selection after successful submission
+            # Clear UI elements after successful submission to reset display
+            st.session_state.prediction_choices = {}
             st.session_state.selection_made = False
             st.session_state.selected_entry = None
+            st.session_state.show_manual_input = False
             
     except Exception as e:
         st.error(f"Failed to record selection: {e}")
