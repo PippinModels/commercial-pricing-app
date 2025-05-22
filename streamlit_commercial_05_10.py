@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/05/25)")
+st.title("Commercial Prediction Model (05/21/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -39,6 +39,12 @@ if not df.empty:
     online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
 
     if st.button("Predict Pricing"):
+        # Clear previous predictions and selections
+        st.session_state.prediction_choices = {}
+        st.session_state.selection_made = False
+        st.session_state.selected_entry = None
+        st.session_state.show_manual_input = False
+        
         filtered_df = df[
             (df["Mapped Type"] == mapped_type) &
             (df["Mapped Product Ordered"] == mapped_product) &
@@ -89,8 +95,8 @@ if not df.empty:
             st.session_state.show_manual_input = True
 
 if st.session_state.get("show_manual_input", False):
-    manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d", key="manual_val_no_prediction")
-    if manual_entry > 0:
+    manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d", key="manual_val_no_prediction", value=None)
+    if manual_entry is not None and manual_entry > 0:
         st.session_state.selection_made = True
         st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
 
@@ -106,8 +112,8 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 
     if selected_text:
         if selected_text == "Other (Enter manually)":
-            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val_radio_other")
-            if manual_entry > 0:
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val_radio_other", value=None)
+            if manual_entry is not None and manual_entry > 0:
                 st.session_state.selection_made = True
                 st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
         else:
@@ -120,9 +126,11 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
     if label == "Manual":
         # Get the manual value from the appropriate source
         if st.session_state.get("show_manual_input", False):
-            lo = int(st.session_state.get("manual_val_no_prediction", 0))
+            manual_val = st.session_state.get("manual_val_no_prediction")
+            lo = int(manual_val) if manual_val is not None else 0
         else:
-            lo = int(st.session_state.get("manual_val_radio_other", 0))
+            manual_val = st.session_state.get("manual_val_radio_other")
+            lo = int(manual_val) if manual_val is not None else 0
         hi = ''
     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
     sheet_name = "User Prediction Selections"
@@ -164,6 +172,9 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
                 timestamp
             ])
             st.success("Your selected range has been recorded.")
+            # Clear the selection after successful submission
+            st.session_state.selection_made = False
+            st.session_state.selected_entry = None
             
     except Exception as e:
         st.error(f"Failed to record selection: {e}")
