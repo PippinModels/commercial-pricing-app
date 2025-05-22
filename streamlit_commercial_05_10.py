@@ -105,9 +105,20 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
     st.markdown("""
         <style>
         div.row-widget.stRadio > div{flex-direction: column;}
-        div.row-widget.stRadio > div > label > div {
-            font-family: monospace !important;
-            font-size: 14px !important;
+        div[data-testid="stRadio"] label {
+            font-family: "Source Code Pro", monospace !important;
+            font-size: 16px !important;
+            font-weight: 400 !important;
+        }
+        div[data-testid="stRadio"] label span {
+            font-family: "Source Code Pro", monospace !important;
+            font-size: 16px !important;
+            font-weight: 400 !important;
+        }
+        div[data-testid="stRadio"] p {
+            font-family: "Source Code Pro", monospace !important;
+            font-size: 16px !important;
+            font-weight: 400 !important;
         }
         </style>
     """, unsafe_allow_html=True)
