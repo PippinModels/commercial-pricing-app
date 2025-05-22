@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05/19/25)")
+st.title("Commercial Prediction Model (05/05/25)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -89,7 +89,7 @@ if not df.empty:
             st.session_state.show_manual_input = True
 
 if st.session_state.get("show_manual_input", False):
-    manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d", key="manual_val")
+    manual_entry = st.number_input("No prediction found. Enter your own predicted value:", min_value=0, format="%d", key="manual_val_no_prediction")
     if manual_entry > 0:
         st.session_state.selection_made = True
         st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
@@ -106,10 +106,10 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 
     if selected_text:
         if selected_text == "Other (Enter manually)":
-            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val")
-        if manual_entry > 0:
-            st.session_state.selection_made = True
-            st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val_radio_other")
+            if manual_entry > 0:
+                st.session_state.selection_made = True
+                st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
         else:
             st.session_state.selection_made = True
             st.session_state.selected_entry = st.session_state.prediction_choices[selected_text]
@@ -118,7 +118,11 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
     label, desc, lo, hi = st.session_state.selected_entry
     if label == "Manual":
-        lo = int(st.session_state.get("manual_val", 0))
+        # Get the manual value from the appropriate source
+        if st.session_state.get("show_manual_input", False):
+            lo = int(st.session_state.get("manual_val_no_prediction", 0))
+        else:
+            lo = int(st.session_state.get("manual_val_radio_other", 0))
         hi = ''
     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d")
     sheet_name = "User Prediction Selections"
