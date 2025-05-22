@@ -106,7 +106,7 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 
     if selected_text:
         if selected_text == "Other (Enter manually)":
-        manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val")
+            manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val")
         if manual_entry > 0:
             st.session_state.selection_made = True
             st.session_state.selected_entry = ("Manual", "Manual", manual_entry, '')
