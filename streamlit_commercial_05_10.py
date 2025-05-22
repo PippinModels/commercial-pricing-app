@@ -106,17 +106,17 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
         <style>
         div.row-widget.stRadio > div{flex-direction: column;}
         div[data-testid="stRadio"] label {
-            font-family: "Source Code Pro", monospace !important;
+            font-family: "Inter", sans-serif !important;
             font-size: 16px !important;
             font-weight: 400 !important;
         }
         div[data-testid="stRadio"] label span {
-            font-family: "Source Code Pro", monospace !important;
+            font-family: "Inter", sans-serif !important;
             font-size: 16px !important;
             font-weight: 400 !important;
         }
         div[data-testid="stRadio"] p {
-            font-family: "Source Code Pro", monospace !important;
+            font-family: "Inter", sans-serif !important;
             font-size: 16px !important;
             font-weight: 400 !important;
         }
