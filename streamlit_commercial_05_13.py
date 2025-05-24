@@ -143,7 +143,6 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"):
     label, desc, lo, hi = st.session_state.selected_entry
     if label == "Manual":
-        # Get the manual value from the appropriate source
         if st.session_state.get("show_manual_input", False):
             manual_val = st.session_state.get("manual_val_no_prediction")
             lo = int(manual_val) if manual_val is not None else 0
@@ -168,34 +167,21 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
         if not existing_data or existing_data[0] != expected_headers:
             submission_sheet.clear()
             submission_sheet.append_row(expected_headers)
+        
+        selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
+        submission_sheet.append_row([
+            mapped_type, mapped_product, online_offline,
+            label,
+            selected_range_text,
+            int(lo),
+            int(hi) if hi != '' else '',
+            timestamp
+        ])
+        st.success("Your selected range has been recorded.")
+        st.session_state.prediction_choices = {}
+        st.session_state.selection_made = False
+        st.session_state.selected_entry = None
+        st.session_state.show_manual_input = False
 
-        existing = submission_sheet.get_all_records()
-        duplicate = any(
-            row["Mapped Type"] == mapped_type and
-            row["Mapped Product Ordered"] == mapped_product and
-            row["Offline/Online"] == online_offline and
-            row["Selection Label"] == label
-            for row in existing
-        )
-
-        if duplicate:
-            st.warning("You've already submitted this selection.")
-        else:
-            selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
-            submission_sheet.append_row([
-                mapped_type, mapped_product, online_offline,
-                label,
-                selected_range_text,
-                int(lo),
-                int(hi) if hi != '' else '',
-                timestamp
-            ])
-            st.success("Your selected range has been recorded.")
-            # Clear UI elements after successful submission to reset display
-            st.session_state.prediction_choices = {}
-            st.session_state.selection_made = False
-            st.session_state.selected_entry = None
-            st.session_state.show_manual_input = False
-            
     except Exception as e:
         st.error(f"Failed to record selection: {e}")
