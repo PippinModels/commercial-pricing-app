@@ -180,16 +180,19 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
         if not existing_data or existing_data[0] != expected_headers:
             submission_sheet.clear()
             submission_sheet.append_row(expected_headers)
-
-        selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
+        
+        if label == "Manual":
+            selected_range_text = "Manual Entry"
+        else:
+            selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
         submission_sheet.append_row([
-            mapped_type, mapped_product, online_offline,
-            label,
-            selected_range_text,
-            int(lo),
-            int(hi) if hi != '' else '',
-            timestamp
-        ])
+                mapped_type, mapped_product, online_offline,
+                label,
+                selected_range_text,
+                int(lo),
+                int(hi) if hi != '' else '',
+                timestamp
+            ])
         st.success("Your selected range has been recorded.")
         st.session_state.prediction_choices = {}
         st.session_state.selection_made = False
