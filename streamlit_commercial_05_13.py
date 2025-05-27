@@ -39,12 +39,11 @@ if not df.empty:
     online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
 
     if st.button("Predict Pricing"):
-        # Clear previous predictions and selections
         st.session_state.prediction_choices = {}
         st.session_state.selection_made = False
         st.session_state.selected_entry = None
         st.session_state.show_manual_input = False
-        
+
         filtered_df = df[
             (df["Mapped Type"] == mapped_type) &
             (df["Mapped Product Ordered"] == mapped_product) &
@@ -127,20 +126,21 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
 
     def extract_sort_value(x):
         try:
-            return int(x.strip('$').split('–')[0].replace(',', '').strip())
+            parts = x.replace('–', '-').split('-')
+            return int(parts[0].strip().strip('$').replace(',', ''))
         except Exception:
-            return float('inf')  
+            return float('inf')
 
     sorted_price_options = sorted(price_options, key=extract_sort_value)
     options = sorted_price_options + ["Other (Enter manually)"]
 
+    selected_text = None  # ✅ initialize to avoid NameError
     selected_text = st.radio(
-    "Choose range:",
-    options=options,
-    index=None,
-    label_visibility="collapsed"
+        "Choose range:",
+        options=options,
+        index=None,
+        label_visibility="collapsed"
     )
-
 
     if selected_text is not None:
         if selected_text == "Other (Enter manually)":
@@ -180,7 +180,7 @@ if st.session_state.get("selection_made", False) and st.button("Submit to Sheet"
         if not existing_data or existing_data[0] != expected_headers:
             submission_sheet.clear()
             submission_sheet.append_row(expected_headers)
-        
+
         selected_range_text = f"${int(lo):,}" if hi == '' else f"${int(lo):,} – ${int(hi):,}"
         submission_sheet.append_row([
             mapped_type, mapped_product, online_offline,
