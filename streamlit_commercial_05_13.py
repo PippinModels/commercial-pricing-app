@@ -26,7 +26,7 @@ product_hierarchy = {
     "Full 60 YR Search": 7, "Full 80 YR Search": 8, "Full 100 YR Search": 9,
 }
 
-st.title("Commercial Prediction Model (05-27-2025)")
+st.title("Commercial Prediction Model (5-27-2025)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
@@ -134,7 +134,7 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
     sorted_price_options = sorted(price_options, key=extract_sort_value)
     options = sorted_price_options + ["Other (Enter manually)"]
 
-    selected_text = None  # ✅ initialize to avoid NameError
+    selected_text = None 
     selected_text = st.radio(
         "Choose range:",
         options=options,
