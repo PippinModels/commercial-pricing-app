@@ -122,9 +122,17 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
         }
         </style>
     """, unsafe_allow_html=True)
+
+    price_options = list(st.session_state.prediction_choices.keys())
+    sorted_price_options = sorted(
+        price_options,
+        key=lambda x: int(x.strip('$').split('–')[0].replace(',', '').strip())
+    )
+    options = sorted_price_options + ["Other (Enter manually)"]
+
     selected_text = st.radio(
         "Choose range:",
-        options=sorted(list(st.session_state.prediction_choices.keys()), key=lambda x: int(x.strip('$').split('–')[0].replace(',', '').strip())) + ["Other (Enter manually)"],
+        options=options,
         index=None,
         label_visibility="collapsed"
     )
