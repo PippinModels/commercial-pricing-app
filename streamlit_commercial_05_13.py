@@ -142,7 +142,7 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
     )
 
 
-    if selected_text:
+    if selected_text is not None:
         if selected_text == "Other (Enter manually)":
             manual_entry = st.number_input("Enter your own predicted value:", min_value=0, format="%d", key="manual_val_radio_other", value=None)
             if manual_entry is not None and manual_entry > 0:
