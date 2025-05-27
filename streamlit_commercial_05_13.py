@@ -134,7 +134,7 @@ if "prediction_choices" in st.session_state and st.session_state.prediction_choi
     sorted_price_options = sorted(price_options, key=extract_sort_value)
     options = sorted_price_options + ["Other (Enter manually)"]
 
-    selected_text = None  # ✅ initialize to avoid NameError
+    selected_text = None 
     selected_text = st.radio(
         "Choose range:",
         options=options,
