@@ -4,17 +4,47 @@ import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 from bs4 import BeautifulSoup
+from googleapiclient.discovery import build
 
-# Google Sheets Auth
+
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 json_key = st.secrets["google_sheets"]["json_key"]
 service_account_info = json.loads(json_key)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 client = gspread.authorize(creds)
 
-spreadsheet_id = "1VWuCzYl69rTP0SOimiS86yPfVO6iTJSEW1BPpnqFzyE"
+
+folder_id = "1VWuCzYl69rTP0SOimiS86yPfVO6iTJSEW1BPpnqFzyE"
+
+# Build Google Drive service
+drive_service = build("drive", "v3", credentials=creds)
+
+# Query for the latest Google Sheet in the folder
+query = f"'{folder_id}' in parents and trashed = false and mimeType='application/vnd.google-apps.spreadsheet'"
+results = drive_service.files().list(q=query, fields="files(id, name, createdTime)").execute()
+files = results.get("files", [])
+
+if not files:
+    st.error("No Google Sheets found in the folder.")
+    st.stop()
+
+# Sort by creation time and get the latest
+files.sort(key=lambda x: x["createdTime"], reverse=True)
+latest_file = files[0]
+spreadsheet_id = latest_file["id"]
+spreadsheet_name = latest_file["name"]
+
+# Load the latest sheet
+st.info(f"Using most recent sheet: **{spreadsheet_name}**")
 sheet = client.open_by_key(spreadsheet_id)
-summary_sheet = sheet.worksheet("Summary Sheet")
+
+# Load 'Summary Sheet'
+try:
+    summary_sheet = sheet.worksheet("Summary Sheet")
+except gspread.exceptions.WorksheetNotFound:
+    st.error("'Summary Sheet' not found in the latest file.")
+    st.stop()
+
 
 # Load data
 data = summary_sheet.get_all_records()
