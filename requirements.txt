@@ -3,4 +3,5 @@ pandas
 gspread
 oauth2client
 beautifulsoup4
+google-api-python-client
 
