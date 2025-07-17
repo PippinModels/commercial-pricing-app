@@ -60,10 +60,20 @@ st.title("Commercial Prediction Model (5-27-2025)")
 st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel search.")
 
 if not df.empty:
-    mapped_type_options = list(df["Mapped Type"].unique()) + ["Other"]
-    mapped_type = st.selectbox("Select Mapped Type", sorted(mapped_type_options))
-    if mapped_type == "Other":
-        mapped_type = st.text_input("Enter your Mapped Type:")
+    mapped_type_options = list(df["Mapped Type"].unique())
+    mapped_type_options.append("Other")
+
+    selected_type = st.selectbox("Select Mapped Type", sorted(mapped_type_options))
+
+    if selected_type == "Other":
+        custom_type = st.text_input("Enter your Mapped Type:")
+        if custom_type:
+            mapped_type = custom_type.strip()
+        else:
+            st.warning("Please enter a custom mapped type.")
+            st.stop()
+    else:
+        mapped_type = selected_type
 
     mapped_product = st.selectbox("Select Mapped Product Ordered", list(product_hierarchy.keys()))
     online_offline = st.selectbox("Select Online/Offline", ["Online", "Ground"])
