@@ -61,7 +61,7 @@ st.markdown("**Disclaimer:** Predicted pricing is based on a single parcel searc
 
 if not df.empty:
     mapped_type_options = list(df["Mapped Type"].unique()) + ["Other"]
-    mapped_type = st.selectbox("Select Mapped Type", mapped_type_options)
+    mapped_type = st.selectbox("Select Mapped Type", sorted(mapped_type_options))
     if mapped_type == "Other":
         mapped_type = st.text_input("Enter your Mapped Type:")
 
